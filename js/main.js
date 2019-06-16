@@ -11,8 +11,8 @@ var MAP_X_MIN = 0;
 var MAP_X_MAX = MAP_WIDTH;
 var MAP_Y_MIN = 130;
 var MAP_Y_MAX = 630;
-var PIN_WIDTH = 40;
-var PIN_HEIGHT = 40;
+var PIN_WIDTH = 50;
+var PIN_HEIGHT = 70;
 
 var getRandomArrayElement = function (arrLength) {
   var element = Math.floor(Math.random() * arrLength);
