@@ -22,7 +22,7 @@ var getRandomArrayElement = function (arrLength) {
 
 var getRandomCoordinate = function (min, max) {
   return (Math.random() * (max - min) + min).toFixed();
-}
+};
 
 var generateAds = function (adsCount) {
   var generatedAds = [];
