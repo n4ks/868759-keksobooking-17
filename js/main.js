@@ -11,6 +11,10 @@ var form = document.querySelector('.ad-form');
 var formElements = form.querySelectorAll('.ad-form__element, .ad-form-header__input');
 var pinsList = document.querySelector('.map__pins');
 var adressField = form.querySelector('#address');
+var housingTypeField = form.querySelector('#type');
+var pricePerNightField = form.querySelector('#price');
+var timeInField = form.querySelector('#timein');
+var timeOutField = form.querySelector('#timeout');
 
 var ADS_COUNT = 8;
 var IMG_NAME_LIMITER = 9;
@@ -96,14 +100,41 @@ var appendFragmentElements = function (fragment, adsArray) {
   }
 };
 
+var onHousingTypeChange = function () {
+  switch (housingTypeField.value) {
+    case 'bungalo':
+      pricePerNightField.setAttribute('min', '0');
+      pricePerNightField.setAttribute('placeholder', '0');
+      break;
+    case 'flat':
+      pricePerNightField.setAttribute('min', '1000');
+      pricePerNightField.setAttribute('placeholder', '1000');
+      break;
+    case 'house':
+      pricePerNightField.setAttribute('min', '5000');
+      pricePerNightField.setAttribute('placeholder', '5000');
+      break;
+    case 'palace':
+      pricePerNightField.setAttribute('min', '10000');
+      pricePerNightField.setAttribute('placeholder', '10000');
+      break;
+    default:
+      break;
+  }
+};
+
 var onMainPinClick = function () {
   // гененируем объекты
   ads = generateAds(ADS_COUNT);
   //  Снимаем блок с карты и формы
   map.classList.remove('map--faded');
   form.classList.remove('ad-form--disabled');
+  // делаем поле адрес доступным только для чтения
+  adressField.setAttribute('readonly', 'true');
   enableElements(mapFormElements);
   enableElements(formElements);
+  // устанавливаем минимальное значение цены в зависимости от выбранного поля для предотвращения отправки в случае если пользователь не менял тип жилья
+  onHousingTypeChange();
   // Выводим сгенерированные пины на экран
   appendFragmentElements(pinsFragment, ads);
   pinsList.appendChild(pinsFragment);
@@ -112,3 +143,16 @@ var onMainPinClick = function () {
 };
 
 mainPin.addEventListener('click', onMainPinClick);
+
+housingTypeField.addEventListener('change', onHousingTypeChange);
+
+timeInField.addEventListener('change', function () {
+  if (timeInField.value !== timeOutField.value) {
+    timeOutField.value = timeInField.value;
+  }
+});
+timeOutField.addEventListener('change', function () {
+  if (timeOutField.value !== timeInField.value) {
+    timeInField.value = timeOutField.value;
+  }
+});
