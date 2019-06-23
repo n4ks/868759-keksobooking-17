@@ -1,7 +1,6 @@
 'use strict';
 
 var offerTypes = ['palace', 'flat', 'house', 'bungalo'];
-var ads = [];
 var mainPin = document.querySelector('.map__pin--main');
 var map = document.querySelector('.map');
 var mapFormElements = map.querySelector('.map__filters').querySelectorAll('.map__filter, .map__features');
@@ -27,6 +26,26 @@ var MAIN_PIN_WIDTH = 65;
 var MAIN_PIN_HEIGHT = 65;
 var PIN_WIDTH = 50;
 var PIN_HEIGHT = 70;
+var AVATAR_PATH = 'img/avatars/user';
+var AD_HEADLINE = 'заголовок объявления';
+var HOUSING_TYPE_SETTINGS = {
+  bungalo: {
+    min: 0,
+    placeholder: 0
+  },
+  flat: {
+    min: 1000,
+    placeholder: 1000
+  },
+  house: {
+    min: 5000,
+    placeholder: 5000
+  },
+  palace: {
+    min: 10000,
+    placeholder: 10000
+  }
+};
 
 var disableElements = function (elementsArray) {
   for (var i = 0; i < elementsArray.length; i++) {
@@ -66,7 +85,7 @@ var generateAds = function (adsCount) {
   for (var i = 0; i < adsCount; i++) {
     var ad = {
       author: {
-        avatar: 'img/avatars/user' + (i < IMG_NAME_LIMITER ? '0' + (i + 1) : i + 1) + '.png'
+        avatar: AVATAR_PATH + (i < IMG_NAME_LIMITER ? '0' + (i + 1) : i + 1) + '.png'
       },
       offer: {
         type: offerTypes[getRandomArrayElement(offerTypes.length)]
@@ -89,7 +108,7 @@ var generatePinElement = function (adsArray) {
   pin.style.left = adsArray.location.x + 'px';
   pin.style.top = adsArray.location.y + 'px';
   pinAvatar.src = adsArray.author.avatar;
-  pinAvatar.alt = 'заголовок объявления';
+  pinAvatar.alt = AD_HEADLINE;
 
   return pin;
 };
@@ -101,31 +120,40 @@ var appendFragmentElements = function (fragment, adsArray) {
 };
 
 var onHousingTypeChange = function () {
-  switch (housingTypeField.value) {
-    case 'bungalo':
-      pricePerNightField.setAttribute('min', '0');
-      pricePerNightField.setAttribute('placeholder', '0');
-      break;
-    case 'flat':
-      pricePerNightField.setAttribute('min', '1000');
-      pricePerNightField.setAttribute('placeholder', '1000');
-      break;
-    case 'house':
-      pricePerNightField.setAttribute('min', '5000');
-      pricePerNightField.setAttribute('placeholder', '5000');
-      break;
-    case 'palace':
-      pricePerNightField.setAttribute('min', '10000');
-      pricePerNightField.setAttribute('placeholder', '10000');
-      break;
-    default:
-      break;
+  var selectedValue = housingTypeField.value;
+  var selectedValueSettings = HOUSING_TYPE_SETTINGS[selectedValue];
+  var attributes = Object.keys(selectedValueSettings);
+
+  for (var i = 0; i < attributes.length; i++) {
+    var currentAttr = attributes[i];
+    var currentAttrValue = selectedValueSettings[currentAttr];
+    pricePerNightField.setAttribute(currentAttr, currentAttrValue);
   }
+  // switch (housingTypeField.value) {
+  //   case 'bungalo':
+  //     pricePerNightField.setAttribute('min', '0');
+  //     pricePerNightField.setAttribute('placeholder', '0');
+  //     break;
+  //   case 'flat':
+  //     pricePerNightField.setAttribute('min', '1000');
+  //     pricePerNightField.setAttribute('placeholder', '1000');
+  //     break;
+  //   case 'house':
+  //     pricePerNightField.setAttribute('min', '5000');
+  //     pricePerNightField.setAttribute('placeholder', '5000');
+  //     break;
+  //   case 'palace':
+  //     pricePerNightField.setAttribute('min', '10000');
+  //     pricePerNightField.setAttribute('placeholder', '10000');
+  //     break;
+  //   default:
+  //     break;
+  // }
 };
 
 var onMainPinClick = function () {
   // гененируем объекты
-  ads = generateAds(ADS_COUNT);
+  var ads = generateAds(ADS_COUNT);
   //  Снимаем блок с карты и формы
   map.classList.remove('map--faded');
   form.classList.remove('ad-form--disabled');
@@ -146,13 +174,15 @@ mainPin.addEventListener('click', onMainPinClick);
 
 housingTypeField.addEventListener('change', onHousingTypeChange);
 
-timeInField.addEventListener('change', function () {
-  if (timeInField.value !== timeOutField.value) {
-    timeOutField.value = timeInField.value;
+var setFieldsAttrSync = function (firstField, secondField) {
+  if (firstField.value !== secondField.value) {
+    secondField.value = firstField.value;
   }
+};
+
+timeInField.addEventListener('change', function () {
+  setFieldsAttrSync(timeInField, timeOutField);
 });
 timeOutField.addEventListener('change', function () {
-  if (timeOutField.value !== timeInField.value) {
-    timeInField.value = timeOutField.value;
-  }
+  setFieldsAttrSync(timeOutField, timeInField);
 });
