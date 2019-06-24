@@ -9,7 +9,7 @@ var pinsFragment = document.createDocumentFragment();
 var form = document.querySelector('.ad-form');
 var formElements = form.querySelectorAll('.ad-form__element, .ad-form-header__input');
 var pinsList = document.querySelector('.map__pins');
-var adressField = form.querySelector('#address');
+var addressField = form.querySelector('#address');
 var housingTypeField = form.querySelector('#type');
 var pricePerNightField = form.querySelector('#price');
 var timeInField = form.querySelector('#timein');
@@ -64,30 +64,17 @@ var enableElements = function (elementsArray) {
 };
 
 // Вычисление координат метки для поля 'адрес' -- жирновато?
-var setAdressFieldValue = function (pinCoords, pinWidth, pinHeight, arrowHeight) {
+var setAddressFieldValue = function (pinCoords, pinWidth, pinHeight, arrowHeight) {
   // Если расчитываются начальные координаты метки - вычисляем центр круглой метки, иначе учитываем всю высоту
   return (parseInt(pinCoords.x, 10) + (pinWidth / 2)).toFixed() + ', ' +
     (parseInt(pinCoords.y, 10) + (arrowHeight ? (pinHeight + arrowHeight) : (pinHeight / 2))).toFixed();
 };
 
-// var setAdressFieldValue = function (pinCoords, pinWidth, pinHeight, arrowHeight) {
-//   // Если расчитываются начальные координаты метки - вычисляем центр круглой метки, иначе учитываем всю высоту
-//   var value;
-//   if (arrowHeight) {
-//     value = (parseInt(pinCoords.x, 10) + (pinWidth / 2)).toFixed() + ', ' +
-//       (parseInt(pinCoords.y, 10) + (pinHeight + arrowHeight)).toFixed();
-//   } else {
-//     value = (parseInt(pinCoords.x, 10) + (pinWidth / 2)).toFixed() + ', ' +
-//       (parseInt(pinCoords.y, 10) + (pinHeight / 2)).toFixed();
-//   }
-//   return value;
-// };
-
 var onPageLoaded = function () {
   disableElements(mapFormElements);
   disableElements(formElements);
   // Передаём координаты центра основной метки в адрес
-  adressField.value = setAdressFieldValue(mainPinCoords, MAIN_PIN_WIDTH, MAIN_PIN_HEIGHT);
+  addressField.value = setAddressFieldValue(mainPinCoords, MAIN_PIN_WIDTH, MAIN_PIN_HEIGHT);
 };
 
 // Ждём пока загрузится DOM
@@ -161,7 +148,7 @@ var onMainPinClick = function () {
   map.classList.remove('map--faded');
   form.classList.remove('ad-form--disabled');
   // делаем поле адрес доступным только для чтения
-  adressField.setAttribute('readonly', 'true');
+  addressField.setAttribute('readonly', 'true');
   enableElements(mapFormElements);
   enableElements(formElements);
   // устанавливаем минимальное значение цены в зависимости от выбранного поля для предотвращения отправки в случае если пользователь не менял тип жилья
@@ -181,22 +168,22 @@ mainPin.addEventListener('mousedown', function (evt) {
 
   // Получаем координаты клика
   var clickCoords = {
-    x: evt.clientX,
-    y: evt.clientY
+    x: evt.pageX,
+    y: evt.pageY
   };
 
   var onPinMove = function (moveEvt) {
 
     // Определяем сдвиг метки
     var mainPinShift = {
-      x: clickCoords.x - moveEvt.clientX,
-      y: clickCoords.y - moveEvt.clientY
+      x: clickCoords.x - moveEvt.pageX,
+      y: clickCoords.y - moveEvt.pageY
     };
 
     // Переопределяем координаты метки после сдвига
     clickCoords = {
-      x: moveEvt.clientX,
-      y: moveEvt.clientY
+      x: moveEvt.pageX,
+      y: moveEvt.pageY
     };
 
     var shiftedCoords = {
@@ -204,46 +191,45 @@ mainPin.addEventListener('mousedown', function (evt) {
       y: mainPin.offsetTop - mainPinShift.y
     };
 
+    clickCoords = {
+      x: moveEvt.pageX,
+      y: moveEvt.pageY
+    };
 
     var restrictMoveArea = function () {
       switch (true) {
-        case shiftedCoords.x < MAP_X_MIN:
-          shiftedCoords.x = MAP_X_MIN;
+        case mainPin.offsetLeft < MAP_X_MIN:
+          document.removeEventListener('mousemove', onPinMove);
           break;
-        case shiftedCoords.x > (MAP_X_MAX - MAIN_PIN_WIDTH):
-          shiftedCoords.x = MAP_X_MAX - MAIN_PIN_WIDTH;
+        case mainPin.offsetLeft > (MAP_X_MAX - MAIN_PIN_WIDTH):
+          document.removeEventListener('mousemove', onPinMove);
           break;
-        case shiftedCoords.y < MAP_Y_MIN:
-          shiftedCoords.y = MAP_Y_MIN;
+        case mainPin.offsetTop < MAP_Y_MIN:
+          document.removeEventListener('mousemove', onPinMove);
           break;
-        case shiftedCoords.y > (MAP_Y_MAX - (MAIN_PIN_HEIGHT + MAIN_PIN_ARROW_HEIGHT)):
-          shiftedCoords.y = MAP_Y_MAX - (MAIN_PIN_HEIGHT + MAIN_PIN_ARROW_HEIGHT);
+        case mainPin.offsetTop >= (MAP_Y_MAX - (MAIN_PIN_HEIGHT + MAIN_PIN_ARROW_HEIGHT)):
+          document.removeEventListener('mousemove', onPinMove);
           break;
         default:
           break;
       }
     };
 
-    restrictMoveArea();
-
-
-    // if (shiftedCoords.x > (MAP_X_MAX - MAIN_PIN_WIDTH)) {
-    //   shiftedCoords.x = MAP_X_MAX - MAIN_PIN_WIDTH;
-    // }
-
     // Присваиваем метке новые координаты
-    mainPin.style.left = (shiftedCoords.x) + 'px';
-    mainPin.style.top = shiftedCoords.y + 'px';
+    mainPin.style.top = (mainPin.offsetTop - mainPinShift.y) + 'px';
+    mainPin.style.left = (mainPin.offsetLeft - mainPinShift.x) + 'px';
+    restrictMoveArea();
+    // // Переводим карту и форму в активное состояние
+    var isActiveModeOn = map.classList.contains('map--faded') && form.classList.contains('ad-form--disabled');
 
-    // Переводим карту и форму в активное состояние
-    if (map.classList.contains('map--faded') && form.classList.contains('ad-form--disabled')) {
+    if (isActiveModeOn) {
       // гененируем объекты
       var ads = generateAds(ADS_COUNT);
       //  Снимаем блок с карты и формы
       map.classList.remove('map--faded');
       form.classList.remove('ad-form--disabled');
       // делаем поле адрес доступным только для чтения
-      adressField.setAttribute('readonly', 'true');
+      addressField.setAttribute('readonly', 'true');
       enableElements(mapFormElements);
       enableElements(formElements);
       // устанавливаем минимальное значение цены в зависимости от выбранного поля для предотвращения отправки в случае если пользователь не менял тип жилья
@@ -255,14 +241,11 @@ mainPin.addEventListener('mousedown', function (evt) {
 
     // Записываем координаты метки в поле 'адрес' учитывая указатель
 
-    adressField.value = setAdressFieldValue(shiftedCoords, MAIN_PIN_WIDTH, MAIN_PIN_HEIGHT, MAIN_PIN_ARROW_HEIGHT);
+    addressField.value = setAddressFieldValue(shiftedCoords, MAIN_PIN_WIDTH, MAIN_PIN_HEIGHT, MAIN_PIN_ARROW_HEIGHT);
   };
 
-  var onMouseUp = function (upEvt) {
-    clickCoords = {
-      x: upEvt.clientX,
-      y: upEvt.clientY
-    };
+  var onMouseUp = function () {
+
     document.removeEventListener('mousemove', onPinMove);
     mainPin.removeEventListener('mouseup', onMouseUp);
   };
