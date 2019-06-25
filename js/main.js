@@ -164,8 +164,15 @@ var onMainPinClick = function () {
 
 housingTypeField.addEventListener('change', onHousingTypeChange);
 
+var mapOverlay = document.querySelector('.map__overlay');
+
 mainPin.addEventListener('mousedown', function (evt) {
 
+
+  var getCoords = function (elem) {
+    var box = elem.getBoundinglientRect();
+
+  }
   // Получаем координаты клика
   var clickCoords = {
     x: evt.pageX,
@@ -173,7 +180,6 @@ mainPin.addEventListener('mousedown', function (evt) {
   };
 
   var onPinMove = function (moveEvt) {
-
     // Определяем сдвиг метки
     var mainPinShift = {
       x: clickCoords.x - moveEvt.pageX,
@@ -191,34 +197,33 @@ mainPin.addEventListener('mousedown', function (evt) {
       y: mainPin.offsetTop - mainPinShift.y
     };
 
-    clickCoords = {
-      x: moveEvt.pageX,
-      y: moveEvt.pageY
-    };
-
     var restrictMoveArea = function () {
       switch (true) {
-        case mainPin.offsetLeft < MAP_X_MIN:
+        case shiftedCoords.x < MAP_X_MIN:
+          shiftedCoords.x = MAP_X_MIN;
           document.removeEventListener('mousemove', onPinMove);
           break;
-        case mainPin.offsetLeft > (MAP_X_MAX - MAIN_PIN_WIDTH):
+        case shiftedCoords.x > (MAP_X_MAX - MAIN_PIN_WIDTH):
+          shiftedCoords.x = MAP_X_MAX - MAIN_PIN_WIDTH;
           document.removeEventListener('mousemove', onPinMove);
           break;
-        case mainPin.offsetTop < MAP_Y_MIN:
+        case shiftedCoords.y < MAP_Y_MIN:
+          shiftedCoords.y = MAP_Y_MIN;
           document.removeEventListener('mousemove', onPinMove);
           break;
-        case mainPin.offsetTop >= (MAP_Y_MAX - (MAIN_PIN_HEIGHT + MAIN_PIN_ARROW_HEIGHT)):
+        case shiftedCoords.y > (MAP_Y_MAX - (MAIN_PIN_HEIGHT + MAIN_PIN_ARROW_HEIGHT)):
+          shiftedCoords.y = MAP_Y_MAX - (MAIN_PIN_HEIGHT + MAIN_PIN_ARROW_HEIGHT);
           document.removeEventListener('mousemove', onPinMove);
           break;
         default:
           break;
       }
     };
-
-    // Присваиваем метке новые координаты
-    mainPin.style.top = (mainPin.offsetTop - mainPinShift.y) + 'px';
-    mainPin.style.left = (mainPin.offsetLeft - mainPinShift.x) + 'px';
     restrictMoveArea();
+    // Присваиваем метке новые координаты
+    mainPin.style.top = (shiftedCoords.y) + 'px';
+    mainPin.style.left = (shiftedCoords.x) + 'px';
+
     // // Переводим карту и форму в активное состояние
     var isActiveModeOn = map.classList.contains('map--faded') && form.classList.contains('ad-form--disabled');
 
