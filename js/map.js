@@ -12,7 +12,7 @@
   var mapFormElements = map.querySelector('.map__filters').querySelectorAll('.map__filter, .map__features');
   var addressField = form.querySelector('#address');
   var pinsList = document.querySelector('.map__pins');
-
+  var isActiveMode = false;
   var mainPinCoords = {
     x: mainPin.offsetLeft,
     y: mainPin.offsetTop
@@ -33,7 +33,7 @@
     arrow = arrow === 0 ? 0 : arrowHeight;
 
     return (parseInt(pinCoords.x, 10) + (pinWidth / 2)).toFixed() + ', ' +
-      (parseInt(pinCoords.y, 10) + (pinHeight / 2) + arrow).toFixed();
+      (parseInt(pinCoords.y, 10) + (pinHeight / 2) + mainPinSizes.arrowHeight).toFixed();
   };
   addressField.value = setAddressFieldValue(mainPinCoords, mainPinSizes.width, mainPinSizes.width);
 
@@ -92,10 +92,14 @@
 
       // Переводим карту в активное состояние
       var setMapActive = function () {
-        map.classList.remove('map--faded');
-        window.util.enableElements(mapFormElements);
-        // Выводим сгенерированные пины на экран
-        pinsList.appendChild(window.pin.createPinsFragment());
+        if (!isActiveMode) {
+          map.classList.remove('map--faded');
+          window.util.enableElements(mapFormElements);
+          // Выводим сгенерированные пины на экран
+          pinsList.appendChild(window.pin.createPinsFragment());
+
+          isActiveMode = true;
+        }
       };
 
       window.util.isActiveModeOn(setMapActive());
