@@ -29,13 +29,12 @@
 
   // Инициализиуем поле 'адрес' начальными значениями координат основной метки
   var setAddressFieldValue = function (pinCoords, pinWidth, pinHeight, arrowHeight) {
-    var arrow = 0;
-    arrow = arrow === 0 ? 0 : arrowHeight;
+    var arrow = arrowHeight !== 0 ? arrowHeight : 0;
 
     return (parseInt(pinCoords.x, 10) + (pinWidth / 2)).toFixed() + ', ' +
-      (parseInt(pinCoords.y, 10) + (pinHeight / 2) + mainPinSizes.arrowHeight).toFixed();
+      (parseInt(pinCoords.y, 10) + (pinHeight / 2) + arrow).toFixed();
   };
-  addressField.value = setAddressFieldValue(mainPinCoords, mainPinSizes.width, mainPinSizes.width);
+  addressField.value = setAddressFieldValue(mainPinCoords, mainPinSizes.width, mainPinSizes.width, 0);
 
   mainPin.addEventListener('mousedown', function (evt) {
     // Получаем координаты клика

@@ -32,7 +32,7 @@ window.data = (function () {
           },
           location: {
             x: getRandomCoordinate(MAP_X_MIN + (pinSizes.width / 2), MAP_X_MAX - (pinSizes.width / 2)),
-            y: getRandomCoordinate(MAP_Y_MIN + pinSizes.height, MAP_Y_MAX - pinSizes.height)
+            y: getRandomCoordinate(MAP_Y_MIN, MAP_Y_MAX - pinSizes.height)
           }
         };
 
