@@ -1,32 +1,31 @@
 'use strict';
 
 window.pin = (function () {
-  var AD_HEADLINE = 'заголовок объявления';
 
   var pinBtnPattern = document.querySelector('#pin').content.querySelector('.map__pin');
   var pinsFragment = document.createDocumentFragment();
-
-  // гененируем объекты
-  var ads = window.data.generateAds();
-
-  // Создаём пины
-  var generatePinElement = function (adsArray) {
+  var pinsList = document.querySelector('.map__pins');
+  var generatePinElement = function (ad) {
     var pin = pinBtnPattern.cloneNode(true);
     var pinAvatar = pin.querySelector('img');
 
-    pin.style.left = adsArray.location.x + 'px';
-    pin.style.top = adsArray.location.y + 'px';
-    pinAvatar.src = adsArray.author.avatar;
-    pinAvatar.alt = AD_HEADLINE;
+    pin.style.left = ad.location.x + 'px';
+    pin.style.top = ad.location.y + 'px';
+    pinAvatar.src = ad.author.avatar;
+    pinAvatar.alt = ad.offer.title;
     return pin;
   };
-  return {
-    createPinsFragment: function () {
-      for (var i = 0; i < ads.length; i++) {
-        pinsFragment.appendChild(generatePinElement(ads[i]));
-      }
 
-      return pinsFragment;
+  return {
+    createPins: function () {
+      var successCallback = function (response) {
+        response.forEach(function (ad) {
+          pinsFragment.appendChild(generatePinElement(ad));
+          return pinsFragment;
+        });
+        pinsList.appendChild(pinsFragment);
+      };
+      window.backend.load(successCallback);
     }
   };
 }());

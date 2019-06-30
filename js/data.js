@@ -4,15 +4,18 @@ window.data = (function () {
   var ADS_COUNT = 8;
   var IMG_NAME_LIMITER = 9;
   var AVATAR_PATH = 'img/avatars/user';
-  var MAP_X_MIN = 0;
-  var MAP_X_MAX = 1200;
-  var MAP_Y_MIN = 130;
-  var MAP_Y_MAX = 630;
 
   var offerTypes = ['palace', 'flat', 'house', 'bungalo'];
   var pinSizes = {
     width: 50,
     height: 70
+  };
+
+  var MapLimit = {
+    X_MIN: 0,
+    X_MAX: 1200,
+    Y_MIN: 130,
+    Y_MAX: 630
   };
 
   var getRandomCoordinate = function (min, max) {
@@ -31,8 +34,8 @@ window.data = (function () {
             type: offerTypes[window.util.getRandomArrayElement(offerTypes.length)]
           },
           location: {
-            x: getRandomCoordinate(MAP_X_MIN + (pinSizes.width / 2), MAP_X_MAX - (pinSizes.width / 2)),
-            y: getRandomCoordinate(MAP_Y_MIN, MAP_Y_MAX - pinSizes.height)
+            x: getRandomCoordinate(MapLimit.X_MIN + (pinSizes.width / 2), MapLimit.X_MAX - (pinSizes.width / 2)),
+            y: getRandomCoordinate(MapLimit.Y_MIN, MapLimit.Y_MAX - pinSizes.height)
           }
         };
 
