@@ -1,21 +1,22 @@
 'use strict';
 
 (function () {
-  var MAP_X_MIN = 0;
-  var MAP_X_MAX = 1200;
-  var MAP_Y_MIN = 130;
-  var MAP_Y_MAX = 630;
-
   var map = document.querySelector('.map');
   var form = document.querySelector('.ad-form');
   var mainPin = document.querySelector('.map__pin--main');
   var mapFormElements = map.querySelector('.map__filters').querySelectorAll('.map__filter, .map__features');
   var addressField = form.querySelector('#address');
-  var pinsList = document.querySelector('.map__pins');
   var isActiveMode = false;
   var mainPinCoords = {
     x: mainPin.offsetLeft,
     y: mainPin.offsetTop
+  };
+
+  var MapLimit = {
+    X_MIN: 0,
+    X_MAX: 1200,
+    Y_MIN: 130,
+    Y_MAX: 630
   };
 
   var mainPinSizes = {
@@ -63,20 +64,20 @@
 
       var restrictMoveArea = function () {
         switch (true) {
-          case shiftedCoords.x < MAP_X_MIN:
-            shiftedCoords.x = MAP_X_MIN;
+          case shiftedCoords.x < MapLimit.X_MIN:
+            shiftedCoords.x = MapLimit.X_MIN;
             document.removeEventListener('mousemove', onPinMove);
             break;
-          case shiftedCoords.x > (MAP_X_MAX - mainPinSizes.width):
-            shiftedCoords.x = MAP_X_MAX - mainPinSizes.width;
+          case shiftedCoords.x > (MapLimit.X_MAX - mainPinSizes.width):
+            shiftedCoords.x = MapLimit.X_MAX - mainPinSizes.width;
             document.removeEventListener('mousemove', onPinMove);
             break;
-          case shiftedCoords.y < MAP_Y_MIN:
-            shiftedCoords.y = MAP_Y_MIN;
+          case shiftedCoords.y < MapLimit.Y_MIN:
+            shiftedCoords.y = MapLimit.Y_MIN;
             document.removeEventListener('mousemove', onPinMove);
             break;
-          case shiftedCoords.y > (MAP_Y_MAX - (mainPinSizes.height + mainPinSizes.arrowHeight)):
-            shiftedCoords.y = MAP_Y_MAX - (mainPinSizes.height + mainPinSizes.arrowHeight);
+          case shiftedCoords.y > (MapLimit.Y_MAX - (mainPinSizes.height + mainPinSizes.arrowHeight)):
+            shiftedCoords.y = MapLimit.Y_MAX - (mainPinSizes.height + mainPinSizes.arrowHeight);
             document.removeEventListener('mousemove', onPinMove);
             break;
           default:
@@ -95,7 +96,7 @@
           map.classList.remove('map--faded');
           window.util.enableElements(mapFormElements);
           // Выводим сгенерированные пины на экран
-          pinsList.appendChild(window.pin.createPinsFragment());
+          window.pin.createPins();
 
           isActiveMode = true;
         }
