@@ -38,7 +38,7 @@ window.backend = (function () {
       }
 
       if (responseMsg) {
-        errorCallback();
+        errorCallback(responseMsg);
       }
 
       xhr.timeout = 10000;

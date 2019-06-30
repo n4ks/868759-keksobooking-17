@@ -16,6 +16,13 @@ window.pin = (function () {
     return pin;
   };
 
+  var errorCallback = function (responseMsg) {
+    var errorElement = document.querySelector('#error').content.querySelector('.error');
+    var errorElementText = errorElement.querySelector('.error__message');
+    errorElementText.textContent = responseMsg;
+    document.body.insertAdjacentElement('afterbegin', errorElement);
+  };
+
   return {
     createPins: function () {
       var successCallback = function (response) {
@@ -25,7 +32,7 @@ window.pin = (function () {
         });
         pinsList.appendChild(pinsFragment);
       };
-      window.backend.load(successCallback);
+      window.backend.load(successCallback, errorCallback);
     }
   };
 }());
