@@ -96,7 +96,7 @@
           map.classList.remove('map--faded');
           window.util.enableElements(mapFormElements);
           // Выводим сгенерированные пины на экран
-          window.pin.createPins();
+          window.pin.onFirstLoadRender();
 
           isActiveMode = true;
         }

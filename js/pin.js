@@ -5,10 +5,11 @@ window.pin = (function () {
   var pinBtnPattern = document.querySelector('#pin').content.querySelector('.map__pin');
   var pinsFragment = document.createDocumentFragment();
   var pinsList = document.querySelector('.map__pins');
+  var ads = [];
+
   var generatePinElement = function (ad) {
     var pin = pinBtnPattern.cloneNode(true);
     var pinAvatar = pin.querySelector('img');
-
     pin.style.left = ad.location.x + 'px';
     pin.style.top = ad.location.y + 'px';
     pinAvatar.src = ad.author.avatar;
@@ -16,23 +17,39 @@ window.pin = (function () {
     return pin;
   };
 
-  var errorCallback = function (responseMsg) {
-    var errorElement = document.querySelector('#error').content.querySelector('.error');
-    var errorElementText = errorElement.querySelector('.error__message');
-    errorElementText.textContent = responseMsg;
-    document.body.insertAdjacentElement('afterbegin', errorElement);
+  var clearPinsList = function () {
+    var pins = document.querySelector('.map__pins').querySelectorAll('.map__pin:not(.map__pin--main)');
+    if (pins.length > 0) {
+      var pinsArray = Array.from(pins);
+      pinsArray.forEach(function (pin) {
+        pin.remove();
+      });
+    }
   };
 
   return {
-    createPins: function () {
+    renderPins: function (adsList) {
+      // clearPinsList();
+      // Ищем существующие отрисованные пины и удаляем их из DOM
+      adsList.slice(0, 5).forEach(function (ad) {
+        pinsFragment.appendChild(generatePinElement(ad));
+      });
+
+      pinsList.appendChild(pinsFragment);
+    },
+    onFirstLoadRender: function () {
       var successCallback = function (response) {
-        response.forEach(function (ad) {
-          pinsFragment.appendChild(generatePinElement(ad));
-          return pinsFragment;
-        });
-        pinsList.appendChild(pinsFragment);
+        ads = response;
+        window.pin.renderPins(ads);
       };
+      var errorCallback = function (showErrorWindow) {
+        showErrorWindow();
+      };
+
       window.backend.load(successCallback, errorCallback);
+    },
+    getAds: function () {
+      return ads;
     }
   };
 }());
