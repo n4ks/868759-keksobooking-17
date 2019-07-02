@@ -27,10 +27,25 @@ window.pin = (function () {
     }
   };
 
+  // Фильтрация
+  var mapFiltersForm = document.querySelector('.map__filters');
+  var housingType = mapFiltersForm.querySelector('#housing-type');
+
+  var filteredAds = [];
+  housingType.addEventListener('change', function () {
+
+    if (housingType.value !== 'any') {
+      filteredAds = ads.filter(function (ad) {
+        return ad.offer.type === housingType.value;
+      });
+    }
+    window.pin.renderPins(filteredAds);
+  });
+
   return {
     renderPins: function (adsList) {
-      // clearPinsList();
       // Ищем существующие отрисованные пины и удаляем их из DOM
+      clearPinsList();
       adsList.slice(0, 5).forEach(function (ad) {
         pinsFragment.appendChild(generatePinElement(ad));
       });
@@ -48,8 +63,8 @@ window.pin = (function () {
 
       window.backend.load(successCallback, errorCallback);
     },
-    getAds: function () {
-      return ads;
-    }
+    // getAds: function () {
+    //   // return ads;
+    // }
   };
 }());
