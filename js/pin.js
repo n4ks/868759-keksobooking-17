@@ -37,6 +37,31 @@ window.pin = (function () {
     rooms: mapFiltersForm.querySelector('#housing-rooms'),
     guests: mapFiltersForm.querySelector('#housing-guests')
   };
+  var mapFeaturesFieldset = document.querySelector('.map__features');
+  var mapFeatures = mapFeaturesFieldset.querySelectorAll('.map__checkbox');
+
+  var features = {
+    wifi: mapFeaturesFieldset.querySelector('#filter-wifi'),
+    dishwasher: mapFeaturesFieldset.querySelector('#filter-dishwasher'),
+    parking: mapFeaturesFieldset.querySelector('#filter-parking'),
+    washer: mapFeaturesFieldset.querySelector('#filter-washer'),
+    elevator: mapFeaturesFieldset.querySelector('#filter-elevator'),
+    conditioner: mapFeaturesFieldset.querySelector('#filter-conditioner')
+  };
+
+  var priceRanges = {
+    low: {
+      min: 0,
+      max: 10000
+    },
+    middle: {
+      min: 10000,
+      max: 50000
+    },
+    high: {
+      min: 50000
+    }
+  };
 
   var onFilterChange = function () {
     var filteredAds = ads;
@@ -48,13 +73,13 @@ window.pin = (function () {
             var adsPrice = ad.offer.price;
             var priceFilter;
             switch (true) {
-              case adsPrice >= 0 && adsPrice <= 10000:
+              case adsPrice >= priceRanges.low.min && adsPrice <= priceRanges.low.max:
                 priceFilter = 'low';
                 break;
-              case adsPrice >= 10000 && adsPrice <= 50000:
+              case adsPrice >= priceRanges.middle.min && adsPrice <= priceRanges.middle.max:
                 priceFilter = 'middle';
                 break;
-              case adsPrice >= 50000:
+              case adsPrice >= priceRanges.high.min:
                 priceFilter = 'high';
                 break;
               default:
@@ -69,7 +94,27 @@ window.pin = (function () {
         }
       }
     }
+    // фильтрация чекбоксов
+    // debugger;
+    var selectedFeatures = [];
+    for (var feature in features) {
+      if (features.hasOwnProperty(feature)) {
+        if (features[feature].checked) {
+          selectedFeatures.push(feature);
+        }
+      }
+    }
 
+    filteredAds = filteredAds.filter(function (ad) {
+
+      for (var i = 0; i < selectedFeatures.length; i++) {
+        if (!ad.offer.features.includes(selectedFeatures[i])) {
+          return false;
+        }
+      }
+      return true;
+    });
+    console.log(filteredAds);
     window.pin.renderPins(filteredAds);
   };
 
@@ -80,6 +125,15 @@ window.pin = (function () {
     });
   };
   setFilters();
+
+  // собрать общий массив и обвесить в одном цикле
+  var setFeaturesFilters = function () {
+    var featuresArr = Array.from(mapFeatures);
+    featuresArr.forEach(function (checkbox) {
+      checkbox.addEventListener('change', onFilterChange);
+    });
+  };
+  setFeaturesFilters();
 
   return {
     renderPins: function (adsList) {
