@@ -2,16 +2,19 @@
 
 window.pin = (function () {
 
+  var map = document.querySelector('.map');
+  var mapFiltersContainer = map.querySelector('.map__filters-container');
   var pinBtnPattern = document.querySelector('#pin').content.querySelector('.map__pin');
   var pinsFragment = document.createDocumentFragment();
   var pinsList = document.querySelector('.map__pins');
   var ads = [];
 
-  var generatePinElement = function (ad) {
+  var generatePinElement = function (ad, index) {
     var pin = pinBtnPattern.cloneNode(true);
     var pinAvatar = pin.querySelector('img');
     pin.style.left = ad.location.x + 'px';
     pin.style.top = ad.location.y + 'px';
+    pin.setAttribute('id', index);
     pinAvatar.src = ad.author.avatar;
     pinAvatar.alt = ad.offer.title;
     return pin;
@@ -65,7 +68,8 @@ window.pin = (function () {
 
   var onFilterChange = function () {
     var filteredAds = ads;
-    // Для фильтра цены описываем логику отдельно
+
+    // Фильтрация селектов
     for (var prop in filters) {
       if (filters.hasOwnProperty(prop) && filters[prop].value !== 'any') {
         if (prop === 'price') {
@@ -94,8 +98,8 @@ window.pin = (function () {
         }
       }
     }
+
     // фильтрация чекбоксов
-    // debugger;
     var selectedFeatures = [];
     for (var feature in features) {
       if (features.hasOwnProperty(feature)) {
@@ -114,7 +118,7 @@ window.pin = (function () {
       }
       return true;
     });
-    console.log(filteredAds);
+
     window.pin.renderPins(filteredAds);
   };
 
@@ -134,13 +138,73 @@ window.pin = (function () {
     });
   };
   setFeaturesFilters();
+  // Карточки
+  var cardFragment = document.createDocumentFragment();
+  var cardPattern = document.querySelector('#card').content.querySelector('.map__card');
+
+  var createCard = function (ad) {
+    var card = cardPattern.cloneNode(true);
+    var cardTitle = card.querySelector('.popup__title');
+    var cardAddress = card.querySelector('.popup__text--address');
+    var cardPrice = card.querySelector('.popup__text--price');
+    var cardType = card.querySelector('.popup__type');
+    var cardRooms = card.querySelector('.popup__text--capacity');
+    var cardTime = card.querySelector('.popup__text--time');
+    var cardFeatures = card.querySelector('.popup__features');
+    var cardDescr = card.querySelector('.popup__description');
+    var cardAvatar = card.querySelector('.popup__avatar');
+    var cardPhotosList = card.querySelector('.popup__photos');
+    var cardPhotoTemplate = cardPhotosList.querySelector('.popup__photo');
+
+    var houseTypeMap = {
+      'flat': 'Квартира',
+      'bungalo': 'Бунгало',
+      'house': 'Дом',
+      'palace': 'Дворец'
+    };
+    // генерируем карточку для каждого отфильтрованного пина
+
+    cardTitle.textContent = ad.offer.title;
+    cardAddress.textContent = ad.offer.address;
+    cardPrice.textContent = ad.offer.price + '₽/ночь';
+    cardType.textContent = houseTypeMap[ad.offer.type];
+    cardRooms.textContent = ad.offer.rooms + ' комнаты для ' + ad.offer.guests + ' гостей.';
+    cardTime.textContent = 'Заезд после ' + ad.offer.checkin + ', выезд до ' + ad.offer.checkout;
+    // cardFeatures.textContent =
+    // Фото
+    cardDescr.textContent = ad.offer.description;
+    var photosFragment = document.createDocumentFragment();
+    ad.offer.photos.forEach(function (photoSrc) {
+      var photoNode = cardPhotoTemplate.cloneNode();
+      photoNode.src = photoSrc;
+
+      photosFragment.appendChild(photoNode);
+    });
+    cardPhotoTemplate.remove();
+    cardPhotosList.appendChild(photosFragment);
+    cardAvatar.src = ad.author.avatar;
+
+    map.insertBefore(card, mapFiltersContainer);
+  };
+
+  pinsList.addEventListener('click', function (evt) {
+    var target = evt.target;
+    while (target !== pinsList) {
+      if (target.tagName === 'BUTTON') {
+        var ad = ads[target.getAttribute('id')];
+        createCard(ad);
+        return;
+      }
+      target = target.parentNode;
+    }
+  });
 
   return {
     renderPins: function (adsList) {
       // Ищем существующие отрисованные пины и удаляем их из DOM
       clearPinsList();
-      adsList.slice(0, 5).forEach(function (ad) {
-        pinsFragment.appendChild(generatePinElement(ad));
+      adsList.slice(0, 5).forEach(function (ad, index) {
+        pinsFragment.appendChild(generatePinElement(ad, index));
       });
 
       pinsList.appendChild(pinsFragment);
