@@ -7,6 +7,7 @@
   var mapFormElements = map.querySelector('.map__filters').querySelectorAll('.map__filter, .map__features');
   var addressField = form.querySelector('#address');
   var isActiveMode = false;
+
   var mainPinCoords = {
     x: mainPin.offsetLeft,
     y: mainPin.offsetTop
@@ -94,9 +95,22 @@
       var setMapActive = function () {
         if (!isActiveMode) {
           map.classList.remove('map--faded');
-          window.util.enableElements(mapFormElements);
-          // Выводим сгенерированные пины на экран
-          window.pin.onFirstLoadRender();
+          // Запрашиваем данные
+          var getData = function () {
+            var successCallback = function (response) {
+              if (response) {
+                window.data = response;
+                window.pin.renderPins(window.data);
+                window.util.enableElements(mapFormElements);
+              }
+            };
+            var errorCallback = function (showErrorWindow) {
+              showErrorWindow();
+            };
+
+            window.backend.load(successCallback, errorCallback);
+          };
+          getData();
 
           isActiveMode = true;
         }
