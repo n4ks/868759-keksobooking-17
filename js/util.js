@@ -1,9 +1,10 @@
 'use strict';
 
 window.util = (function () {
+  var ESC_KEYCODE = 27;
+  var DEBOUNCE_INTERVAL = 500;
   var map = document.querySelector('.map');
   var form = document.querySelector('.ad-form');
-  var DEBOUNCE_INTERVAL = 500;
   var lastTimeout;
 
   return {
@@ -32,6 +33,11 @@ window.util = (function () {
         window.clearTimeout(lastTimeout);
       }
       lastTimeout = window.setTimeout(action, DEBOUNCE_INTERVAL);
-    }
+    },
+    onEscEvent: function (evt, action) {
+      if (evt.keyCode === ESC_KEYCODE) {
+        action();
+      }
+    },
   };
 }());

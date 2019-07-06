@@ -1,6 +1,12 @@
 'use strict';
 (function () {
   var DEFAULT_FILTER = 'any';
+  var PRICE_FILTER_ID = 'housing-price';
+  var PRICE_FILTER_VALUES = {
+    LOW: 'low',
+    MID: 'middle',
+    HIGH: 'high'
+  };
 
   var filters = Array.from(document.querySelectorAll('.map__filters select'));
   var filterFormElements = document.querySelector('.map__filters').querySelectorAll('.map__filter, .map__features > .map__checkbox');
@@ -19,10 +25,9 @@
     }
   };
 
-  var filtersIdMap = {
+  var filterIdMap = {
     'housing-type': 'type',
     'hosuing-price': 'price',
-    'housing-rooms': 'rooms',
     'housing-guests': 'guests'
   };
 
@@ -35,19 +40,19 @@
     // Селекты
     filters.forEach(function (filter) {
       if (filter.value !== DEFAULT_FILTER) {
-        if (filter.id === 'housing-price') {
+        if (filter.id === PRICE_FILTER_ID) {
           window.filteredAds = window.filteredAds.filter(function (ad) {
             var adsPrice = ad.offer.price;
             var priceFilter;
             switch (true) {
               case adsPrice >= priceRanges.low.min && adsPrice <= priceRanges.low.max:
-                priceFilter = 'low';
+                priceFilter = PRICE_FILTER_VALUES.LOW;
                 break;
               case adsPrice >= priceRanges.middle.min && adsPrice <= priceRanges.middle.max:
-                priceFilter = 'middle';
+                priceFilter = PRICE_FILTER_VALUES.MID;
                 break;
               case adsPrice >= priceRanges.high.min:
-                priceFilter = 'high';
+                priceFilter = PRICE_FILTER_VALUES.HIGH;
                 break;
               default:
                 break;
@@ -56,7 +61,7 @@
           });
         } else {
           window.filteredAds = window.filteredAds.filter(function (ad) {
-            return ad.offer[filtersIdMap[filter.id]].toString() === filter.value;
+            return ad.offer[filterIdMap[filter.id]].toString() === filter.value;
           });
         }
       }

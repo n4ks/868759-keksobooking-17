@@ -1,6 +1,8 @@
 'use strict';
 
 (function () {
+  var CARD_FEATURE_CLASS = 'popup__feature';
+
   var map = document.querySelector('.map');
   var mapFiltersContainer = map.querySelector('.map__filters-container');
   // var cardFragment = document.createDocumentFragment();
@@ -26,7 +28,6 @@
     'palace': 'Дворец'
   };
 
-  var CARD_FEATURE_CLASS = 'popup__feature';
   var featureMap = {
     'wifi': 'popup__feature--wifi',
     'dishwasher': 'popup__feature--dishwasher',
@@ -36,8 +37,8 @@
     'conditioner': 'popup__feature--conditioner'
   };
 
+  // Заполняем карточку данными из объекта
   var createCard = function (ad) {
-
     cardTitle.textContent = ad.offer.title;
     cardAddress.textContent = ad.offer.address;
     cardPrice.textContent = ad.offer.price + '₽/ночь';
@@ -65,6 +66,7 @@
     } else {
       cardFeatures.hidden = true;
     }
+
     // Фотографии
     cardDescr.textContent = ad.offer.description;
     var photosFragment = document.createDocumentFragment();
@@ -82,11 +84,27 @@
     map.insertBefore(card, mapFiltersContainer);
   };
 
+  var target;
+
+  var closeCard = function () {
+    card.remove();
+    target.classList.remove('map__pin--active');
+  };
+
+  var onCardEscPress = function (evt) {
+    window.util.onEscEvent(evt, closeCard);
+    document.removeEventListener('keydown', onCardEscPress);
+  };
+
+  // Создаём и показываем карточку при клике по пину
   pinsList.addEventListener('click', function (evt) {
-    var target = evt.target;
+    target = evt.target;
 
     while (target !== pinsList) {
       if (target.tagName === 'BUTTON' && !target.classList.contains('map__pin--main')) {
+        // Добавляем события на закрытие попапа
+        document.addEventListener('keydown', onCardEscPress);
+
         ads = window.filteredAds ? window.filteredAds : window.data;
         target.classList.add('map__pin--active');
         var ad = ads[target.getAttribute('id')];
