@@ -2,8 +2,8 @@
 
 window.pin = (function () {
   var PINS_COUNT = {
-    FIRST: 0,
-    LAST: 5
+    BEGIN: 0,
+    END: 5
   };
 
   var pinBtnPattern = document.querySelector('#pin').content.querySelector('.map__pin');
@@ -36,7 +36,7 @@ window.pin = (function () {
     renderPins: function (data) {
       // Ищем существующие отрисованные пины и удаляем их из DOM
       clearPinsList();
-      data.slice(PINS_COUNT.FIRST, PINS_COUNT.LAST).forEach(function (ad, index) {
+      data.slice(PINS_COUNT.BEGIN, PINS_COUNT.END).forEach(function (ad, index) {
         pinsFragment.appendChild(generatePinElement(ad, index));
       });
       pinsList.appendChild(pinsFragment);

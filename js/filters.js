@@ -1,51 +1,41 @@
 'use strict';
+(function () {
+  var DEFAULT_FILTER = 'any';
 
-var mapFiltersForm = document.querySelector('.map__filters');
-var mapFilters = mapFiltersForm.querySelectorAll('.map__filter');
+  var filters = Array.from(document.querySelectorAll('.map__filters select'));
+  var filterFormElements = document.querySelector('.map__filters').querySelectorAll('.map__filter, .map__features > .map__checkbox');
 
-var filters = {
-  type: mapFiltersForm.querySelector('#housing-type'),
-  price: mapFiltersForm.querySelector('#housing-price'),
-  rooms: mapFiltersForm.querySelector('#housing-rooms'),
-  guests: mapFiltersForm.querySelector('#housing-guests')
-};
-var mapFeaturesFieldset = document.querySelector('.map__features');
-var mapFeatures = mapFeaturesFieldset.querySelectorAll('.map__checkbox');
+  var priceRanges = {
+    low: {
+      min: 0,
+      max: 10000
+    },
+    middle: {
+      min: 10000,
+      max: 50000
+    },
+    high: {
+      min: 50000
+    }
+  };
 
-var features = {
-  wifi: mapFeaturesFieldset.querySelector('#filter-wifi'),
-  dishwasher: mapFeaturesFieldset.querySelector('#filter-dishwasher'),
-  parking: mapFeaturesFieldset.querySelector('#filter-parking'),
-  washer: mapFeaturesFieldset.querySelector('#filter-washer'),
-  elevator: mapFeaturesFieldset.querySelector('#filter-elevator'),
-  conditioner: mapFeaturesFieldset.querySelector('#filter-conditioner')
-};
+  var filtersIdMap = {
+    'housing-type': 'type',
+    'hosuing-price': 'price',
+    'housing-rooms': 'rooms',
+    'housing-guests': 'guests'
+  };
 
-var priceRanges = {
-  low: {
-    min: 0,
-    max: 10000
-  },
-  middle: {
-    min: 10000,
-    max: 50000
-  },
-  high: {
-    min: 50000
-  }
-};
+  var ads = [];
 
-var ads = [];
+  var onFilterChange = function () {
+    ads = window.data;
+    window.filteredAds = ads;
 
-var onFilterChange = function () {
-  ads = window.data;
-  window.filteredAds = ads;
-
-  // Фильтрация селектов
-  if (ads) {
-    for (var prop in filters) {
-      if (filters.hasOwnProperty(prop) && filters[prop].value !== 'any') {
-        if (prop === 'price') {
+    // Селекты
+    filters.forEach(function (filter) {
+      if (filter.value !== DEFAULT_FILTER) {
+        if (filter.id === 'housing-price') {
           window.filteredAds = window.filteredAds.filter(function (ad) {
             var adsPrice = ad.offer.price;
             var priceFilter;
@@ -62,25 +52,22 @@ var onFilterChange = function () {
               default:
                 break;
             }
-            return priceFilter === filters.price.value;
+            return priceFilter === filter.value;
           });
         } else {
           window.filteredAds = window.filteredAds.filter(function (ad) {
-            return ad.offer[prop].toString() === filters[prop].value;
+            return ad.offer[filtersIdMap[filter.id]].toString() === filter.value;
           });
         }
       }
-    }
+    });
 
-    // фильтрация чекбоксов
-    var selectedFeatures = [];
-    for (var feature in features) {
-      if (features.hasOwnProperty(feature)) {
-        if (features[feature].checked) {
-          selectedFeatures.push(feature);
-        }
-      }
-    }
+    // Чекбоксы
+    var selectedCheckboxes = document.querySelectorAll('.map__features input:checked');
+
+    var selectedFeatures = [].map.call(selectedCheckboxes, function (checkbox) {
+      return checkbox.value;
+    });
 
     window.filteredAds = window.filteredAds.filter(function (ad) {
 
@@ -92,23 +79,16 @@ var onFilterChange = function () {
       return true;
     });
 
-    window.pin.renderPins(window.filteredAds);
-  }
-};
+    window.util.preventDebounce(function () {
+      window.pin.renderPins(window.filteredAds);
+    });
+  };
 
-var setFilters = function () {
-  var filtersArr = Array.from(mapFilters);
-  filtersArr.forEach(function (filter) {
-    filter.addEventListener('change', onFilterChange);
-  });
-};
-setFilters();
-
-// собрать общий массив и обвесить в одном цикле
-var setFeaturesFilters = function () {
-  var featuresArr = Array.from(mapFeatures);
-  featuresArr.forEach(function (checkbox) {
-    checkbox.addEventListener('change', onFilterChange);
-  });
-};
-setFeaturesFilters();
+  var setFilters = function () {
+    var formFilters = Array.from(filterFormElements);
+    formFilters.forEach(function (filter) {
+      filter.addEventListener('change', onFilterChange);
+    });
+  };
+  setFilters();
+}());
