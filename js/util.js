@@ -5,6 +5,8 @@ window.util = (function () {
   var DEBOUNCE_INTERVAL = 500;
   var map = document.querySelector('.map');
   var form = document.querySelector('.ad-form');
+  console.log(map.classList.contains('map--faded') )
+  console.log(form.classList.contains('ad-form--disabled'))
   var lastTimeout;
 
   return {

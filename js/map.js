@@ -95,6 +95,7 @@
       var setMapActive = function () {
         if (!isActiveMode) {
           map.classList.remove('map--faded');
+          window.form.setFormActive();
           // Запрашиваем данные
           var getData = function () {
             var successCallback = function (response) {
@@ -115,8 +116,8 @@
           isActiveMode = true;
         }
       };
-
-      window.util.isActiveModeOn(setMapActive());
+      // setMapActive();
+      window.util.isActiveModeOn(setMapActive);
 
       // Записываем координаты метки в поле 'адрес' учитывая указатель
       addressField.value = setAddressFieldValue(shiftedCoords, mainPinSizes.width, (mainPinSizes.height + mainPinSizes.height), mainPinSizes.arrowHeight);
