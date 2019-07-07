@@ -28,7 +28,8 @@
   var filterIdMap = {
     'housing-type': 'type',
     'hosuing-price': 'price',
-    'housing-guests': 'guests'
+    'housing-guests': 'guests',
+    'housing-rooms': 'rooms'
   };
 
   var ads = [];
@@ -84,6 +85,12 @@
       return true;
     });
 
+    // Закрываем карточку и обрабатываем debounce
+    var map = document.querySelector('.map');
+    var card = map.querySelector('.map__card');
+    if (map.contains(card)) {
+      window.card.closeCard();
+    }
     window.util.preventDebounce(function () {
       window.pin.renderPins(window.filteredAds);
     });

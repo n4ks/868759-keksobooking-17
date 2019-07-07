@@ -7,7 +7,9 @@ window.backend = (function () {
     BAD_REQUEST: 400,
     UNAUTHORIZED: 401,
     NOT_FOUND: 404,
-    SERVER_ERROR: 500
+    SERVER_ERROR: 500,
+    BAD_GATEWAY: 502,
+    SERVICE_UNAVAILABLE: 503
   };
 
   var ErrorMessage = {
@@ -17,6 +19,8 @@ window.backend = (function () {
     SERVER_ERROR: 'Ошибка сервера',
     DEFAULT: 'Cтатус ответа: : ',
     CONNECTION_ERROR: 'Произошла ошибка соединения',
+    BAD_GATEWAY: 'Ошибочный шлюз',
+    SERVICE_UNAVAILABLE: 'Сервис недоступен',
     TIMEOUT: {
       MESSAGE: 'Запрос не успел выполниться за ',
       FORMAT: 'мс'
@@ -50,6 +54,12 @@ window.backend = (function () {
           break;
         case Code.SERVER_ERROR:
           errorMsg = ErrorMessage.SERVER_ERROR;
+          break;
+        case Code.BAD_GATEWAY:
+          errorMsg = ErrorMessage.BAD_GATEWAY;
+          break;
+        case Code.SERVICE_UNAVAILABLE:
+          errorMsg = ErrorMessage.SERVICE_UNAVAILABLE;
           break;
         default:
           errorMsg = ErrorMessage.DEFAULT + xhr.status + ' ' + xhr.statusText;
