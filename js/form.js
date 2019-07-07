@@ -63,12 +63,15 @@ window.form = (function () {
 
   var onRoomsNumberChange = function () {
     guestsFieldOptions.forEach(function (option) {
-
-      if (roomsNumberField.value === '100' && option.value !== '0') {
+      // debugger;
+      if (option.value === '0' && roomsNumberField.value !== '100') {
         option.disabled = true;
-        guestsNumberField.value = '0';
-      } else if (roomsNumberField.value < option.value || option.value === '0') {
+      } else if (option.value !== '0' && roomsNumberField.value === '100') {
         option.disabled = true;
+      } else if (option.value > roomsNumberField.value) {
+        option.disabled = true;
+      } else {
+        option.disabled = false;
       }
     });
   };
@@ -95,11 +98,11 @@ window.form = (function () {
 
       roomsNumberField.addEventListener('change', function () {
         // Включаем все варианты перед проверкой
-        guestsFieldOptions.forEach(function (option) {
-          if (option.disabled === true) {
-            option.disabled = false;
-          }
-        });
+        // guestsFieldOptions.forEach(function (option) {
+        //   if (option.disabled === true) {
+        //     option.disabled = false;
+        //   }
+        // });
         onRoomsNumberChange();
       });
     }
