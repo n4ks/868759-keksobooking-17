@@ -8,7 +8,8 @@ window.form = (function () {
   var GUESTS_VALIDATION_MSG = 'Недопустимое количество гостей для указанного количества комнат, выберите доступный вариант.';
 
   var form = document.querySelector('.ad-form');
-  var formElements = form.querySelectorAll('.ad-form__element, .ad-form-header__input');
+  var formFieldsets = form.querySelectorAll('.ad-form__element, .ad-form-header__input');
+  var formElements = Array.from(form.querySelectorAll('input, select'));
   var addressField = form.querySelector('#address');
   var housingTypeField = form.querySelector('#type');
   var pricePerNightField = form.querySelector('#price');
@@ -39,7 +40,7 @@ window.form = (function () {
   };
 
   // form.classList.add('ad-form--disabled');
-  window.util.disableElements(formElements);
+  window.util.disableElements(formFieldsets);
 
   // устанавливаем минимальное значение цены и плейсхолдер
   var onHousingTypeChange = function () {
@@ -92,12 +93,32 @@ window.form = (function () {
   onRoomsNumberChange();
   onGuestsNumberChange();
 
+  var onFormSubmit = function () {
+    formElements.forEach(function (element) {
+      if (!element.validity.valid) {
+        element.style.border = '2px solid tomato';
+      } else {
+        element.style.border = 'none';
+      }
+    });
+  };
+
+  formElements.forEach(function (element) {
+    element.addEventListener('input', function (evt) {
+      if (!evt.target.validity.valid) {
+        evt.target.style.border = '2px solid tomato';
+      } else {
+        evt.target.style.border = 'none';
+      }
+    });
+  });
+
   return {
     setFormActive: function () {
       form.classList.remove('ad-form--disabled');
       // делаем поле адрес доступным только для чтения
       addressField.setAttribute('readonly', 'true');
-      window.util.enableElements(formElements);
+      window.util.enableElements(formFieldsets);
 
       housingTypeField.addEventListener('change', onHousingTypeChange);
 
@@ -114,6 +135,7 @@ window.form = (function () {
       });
 
       guestsNumberField.addEventListener('input', onGuestsNumberChange);
+      submitBtn.addEventListener('click', onFormSubmit);
     }
   };
 }());
