@@ -19,9 +19,9 @@ window.form = (function () {
   var avatarUpload = form.querySelector('#avatar');
   var avatar = form.querySelector('.ad-form-header__preview img');
   var addressField = form.querySelector('#address');
+  var photosContainer = form.querySelector('.ad-form__photo-container');
   var photosUpload = form.querySelector('#images');
-  var photosContainer = form.querySelector('.ad-form__photo--container');
-  var photo = form.querySelector('.ad-form__photo');
+  var photoFrame = form.querySelector('.ad-form__photo');
   var housingTypeField = form.querySelector('#type');
   var pricePerNightField = form.querySelector('#price');
   var timeInField = form.querySelector('#timein');
@@ -54,7 +54,6 @@ window.form = (function () {
 
   window.util.disableElements(formFieldsets);
 
-
   var uploadPicture = function (uploadInput, pictureTemplate) {
     var file = uploadInput.files[0];
     var fileName = file.name.toLowerCase();
@@ -76,14 +75,33 @@ window.form = (function () {
       fileReader.readAsDataURL(file);
     }
   };
-  // Загрузка аватара
-  var onAvatarChange = function () {
-    uploadPicture(avatarUpload, avatar);
+
+  // Переносим стили с дива на фотографии
+  var copyNodeStyle = function (sourceNode, targetNode) {
+    var computedStyle = window.getComputedStyle(sourceNode);
+    Array.from(computedStyle).forEach(function (key) {
+      return targetNode.style.setProperty(key, computedStyle.getPropertyValue(key), computedStyle.getPropertyPriority(key));
+    });
   };
 
   // Загрузка фото
+  var createPhoto = function () {
+    // photoFrame.style.display = 'none';
+    // var newPhoto = photoFrame.cloneNode();
+    var img = document.createElement('img');
+    copyNodeStyle(photoFrame, img);
+    uploadPicture(photosUpload, img);
+    // newPhoto.appendChild(img);
+    photosContainer.appendChild(img);
+  };
+
   var onPhotoChange = function () {
-    uploadPicture(photosUpload);
+    createPhoto();
+  };
+
+  // Загрузка аватара
+  var onAvatarChange = function () {
+    uploadPicture(avatarUpload, avatar);
   };
 
   // Устанавливаем минимальное значение цены и плейсхолдер
