@@ -1,6 +1,12 @@
 'use strict';
 
 window.form = (function () {
+  var PALACE = {
+    ROOMS: '100',
+    GUESTS: '0'
+  };
+  var GUESTS_VALIDATION_MSG = 'Недопустимое количество гостей для указанного количества комнат, выберите доступный вариант.';
+
   var form = document.querySelector('.ad-form');
   var formElements = form.querySelectorAll('.ad-form__element, .ad-form-header__input');
   var addressField = form.querySelector('#address');
@@ -9,9 +15,9 @@ window.form = (function () {
   var timeInField = form.querySelector('#timein');
   var timeOutField = form.querySelector('#timeout');
   var roomsNumberField = form.querySelector('#room_number');
-  var roomsFieldOptions = roomsNumberField.querySelectorAll('option');
   var guestsNumberField = form.querySelector('#capacity');
   var guestsFieldOptions = Array.from(guestsNumberField.querySelectorAll('option'));
+  var submitBtn = form.querySelector('.ad-form__submit');
 
   var housingTypeSettings = {
     bungalo: {
@@ -55,18 +61,13 @@ window.form = (function () {
     }
   };
 
-  // Синхронизируем количество комнат и гостей
-  // 1 - 1
-  // 2 - 2 || 1
-  // 3 - 3 || 2 || 1
-  // 100 - 0
 
+  // Синхронизируем количество комнат и гостей
   var onRoomsNumberChange = function () {
     guestsFieldOptions.forEach(function (option) {
-      // debugger;
-      if (option.value === '0' && roomsNumberField.value !== '100') {
+      if (option.value === PALACE.GUESTS && roomsNumberField.value !== PALACE.ROOMS) {
         option.disabled = true;
-      } else if (option.value !== '0' && roomsNumberField.value === '100') {
+      } else if (option.value !== PALACE.GUESTS && roomsNumberField.value === PALACE.ROOMS) {
         option.disabled = true;
       } else if (option.value > roomsNumberField.value) {
         option.disabled = true;
@@ -76,9 +77,20 @@ window.form = (function () {
     });
   };
 
+  var onGuestsNumberChange = function () {
+    guestsFieldOptions.forEach(function (option) {
+      if (guestsNumberField.value === option.value && option.disabled) {
+        guestsNumberField.setCustomValidity(GUESTS_VALIDATION_MSG);
+      } else if (guestsNumberField.value === option.value && option.disabled === false) {
+        guestsNumberField.setCustomValidity('');
+      }
+    });
+  };
+
   // Приводим поля в правильное состояние при загрузке страницы
   onHousingTypeChange();
   onRoomsNumberChange();
+  onGuestsNumberChange();
 
   return {
     setFormActive: function () {
@@ -97,14 +109,11 @@ window.form = (function () {
       });
 
       roomsNumberField.addEventListener('change', function () {
-        // Включаем все варианты перед проверкой
-        // guestsFieldOptions.forEach(function (option) {
-        //   if (option.disabled === true) {
-        //     option.disabled = false;
-        //   }
-        // });
         onRoomsNumberChange();
+        onGuestsNumberChange();
       });
+
+      guestsNumberField.addEventListener('input', onGuestsNumberChange);
     }
   };
 }());
