@@ -1,16 +1,27 @@
 'use strict';
 
 window.form = (function () {
+  var SUCCESS_STATUS = 200;
+  var FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
+  var GUESTS_VALIDATION_MSG = 'Недопустимое количество гостей для указанного количества комнат, выберите доступный вариант.';
+  var INVALID_STATE = {
+    ENABLED: '2px solid tomato',
+    DISABLED: 'none'
+  };
   var PALACE = {
     ROOMS: '100',
     GUESTS: '0'
   };
-  var GUESTS_VALIDATION_MSG = 'Недопустимое количество гостей для указанного количества комнат, выберите доступный вариант.';
 
   var form = document.querySelector('.ad-form');
   var formFieldsets = form.querySelectorAll('.ad-form__element, .ad-form-header__input');
   var formElements = Array.from(form.querySelectorAll('input, select'));
+  var avatarUpload = form.querySelector('#avatar');
+  var avatar = form.querySelector('.ad-form-header__preview img');
   var addressField = form.querySelector('#address');
+  var photosUpload = form.querySelector('#images');
+  var photosContainer = form.querySelector('.ad-form__photo--container');
+  var photo = form.querySelector('.ad-form__photo');
   var housingTypeField = form.querySelector('#type');
   var pricePerNightField = form.querySelector('#price');
   var timeInField = form.querySelector('#timein');
@@ -19,7 +30,9 @@ window.form = (function () {
   var guestsNumberField = form.querySelector('#capacity');
   var guestsFieldOptions = Array.from(guestsNumberField.querySelectorAll('option'));
   var submitBtn = form.querySelector('.ad-form__submit');
-
+  var successWindowTemplate = document.querySelector('#success').content.querySelector('.success');
+  var successWindow;
+  var mainElement = document.querySelector('main');
   var housingTypeSettings = {
     bungalo: {
       min: 0,
@@ -39,10 +52,41 @@ window.form = (function () {
     }
   };
 
-  // form.classList.add('ad-form--disabled');
   window.util.disableElements(formFieldsets);
 
-  // устанавливаем минимальное значение цены и плейсхолдер
+
+  var uploadPicture = function (uploadInput, pictureTemplate) {
+    var file = uploadInput.files[0];
+    var fileName = file.name.toLowerCase();
+
+    var checkFIleFormat = FILE_TYPES.some(function (format) {
+      return fileName.endsWith(format);
+    });
+
+    if (checkFIleFormat) {
+      var fileReader = new FileReader();
+
+      var onFileLoad = function () {
+        pictureTemplate.src = fileReader.result;
+        fileReader.removeEventListener('load', onFileLoad);
+      };
+
+      fileReader.addEventListener('load', onFileLoad);
+
+      fileReader.readAsDataURL(file);
+    }
+  };
+  // Загрузка аватара
+  var onAvatarChange = function () {
+    uploadPicture(avatarUpload, avatar);
+  };
+
+  // Загрузка фото
+  var onPhotoChange = function () {
+    uploadPicture(photosUpload);
+  };
+
+  // Устанавливаем минимальное значение цены и плейсхолдер
   var onHousingTypeChange = function () {
     var selectedValue = housingTypeField.value;
     var selectedValueSettings = housingTypeSettings[selectedValue];
@@ -61,7 +105,6 @@ window.form = (function () {
       secondField.value = firstField.value;
     }
   };
-
 
   // Синхронизируем количество комнат и гостей
   var onRoomsNumberChange = function () {
@@ -88,30 +131,67 @@ window.form = (function () {
     });
   };
 
+  // Подсвечиваем поля при потере фокуса или сабмите на сервер если срабатывает валидация
+  var setInvalidElementColor = function (target) {
+    if (!target.validity.valid) {
+      target.style.border = INVALID_STATE.ENABLED;
+    } else {
+      target.style.border = INVALID_STATE.DISABLED;
+    }
+  };
+
+  var setValidation = function () {
+    formElements.forEach(function (element) {
+      element.addEventListener('blur', function (evt) {
+        setInvalidElementColor(evt.target);
+      });
+    });
+  };
+
+  var onSubmitClickValidate = function () {
+    formElements.forEach(function (element) {
+      setInvalidElementColor(element);
+    });
+  };
+
+  // Окно успешной отправки данных
+  var closeSuccessWindow = function () {
+    successWindow.remove();
+  };
+
+  var onSuccessWindowClick = function () {
+    closeSuccessWindow();
+    document.removeEventListener('click', onSuccessWindowClick);
+  };
+
+  var onSuccessWIndowEscPress = function (evt) {
+    window.util.onEscEvent(evt, closeSuccessWindow);
+    document.removeEventListener('keydown', onSuccessWIndowEscPress);
+  };
+
+  // Обрабатываем ответ при отправке формы
+  var onFormSubmit = function (evt) {
+    var successCallback = function (status) {
+      if (status === SUCCESS_STATUS) {
+        successWindow = successWindowTemplate.cloneNode(true);
+        successWindow.style.zIndex = '11';
+        mainElement.insertBefore(successWindow, mainElement.firstChild);
+        document.addEventListener('keydown', onSuccessWIndowEscPress);
+        document.addEventListener('click', onSuccessWindowClick);
+      }
+    };
+
+    var errorCallback = function (showErrorWindow) {
+      showErrorWindow();
+    };
+    window.backend.submit(successCallback, errorCallback, new FormData(form));
+    evt.preventDefault();
+  };
+
   // Приводим поля в правильное состояние при загрузке страницы
   onHousingTypeChange();
   onRoomsNumberChange();
   onGuestsNumberChange();
-
-  var onFormSubmit = function () {
-    formElements.forEach(function (element) {
-      if (!element.validity.valid) {
-        element.style.border = '2px solid tomato';
-      } else {
-        element.style.border = 'none';
-      }
-    });
-  };
-
-  formElements.forEach(function (element) {
-    element.addEventListener('input', function (evt) {
-      if (!evt.target.validity.valid) {
-        evt.target.style.border = '2px solid tomato';
-      } else {
-        evt.target.style.border = 'none';
-      }
-    });
-  });
 
   return {
     setFormActive: function () {
@@ -119,7 +199,11 @@ window.form = (function () {
       // делаем поле адрес доступным только для чтения
       addressField.setAttribute('readonly', 'true');
       window.util.enableElements(formFieldsets);
+      // Добавляем подстветку невалидным полям
+      setValidation();
 
+      avatarUpload.addEventListener('change', onAvatarChange);
+      photosUpload.addEventListener('change', onPhotoChange);
       housingTypeField.addEventListener('change', onHousingTypeChange);
 
       timeInField.addEventListener('change', function () {
@@ -134,8 +218,10 @@ window.form = (function () {
         onGuestsNumberChange();
       });
 
-      guestsNumberField.addEventListener('input', onGuestsNumberChange);
-      submitBtn.addEventListener('click', onFormSubmit);
+      guestsNumberField.addEventListener('blur', onGuestsNumberChange);
+      submitBtn.addEventListener('click', onSubmitClickValidate);
+      form.addEventListener('submit', onFormSubmit);
+
     }
   };
 }());

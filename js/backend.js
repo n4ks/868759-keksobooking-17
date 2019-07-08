@@ -1,6 +1,10 @@
 'use strict';
 
 window.backend = (function () {
+  var SERVER_URL = {
+    PATH: 'https://js.dump.academy/keksobooking/',
+    DATA: 'data'
+  };
 
   var Code = {
     SUCCESS: 200,
@@ -27,11 +31,6 @@ window.backend = (function () {
     }
   };
 
-  var SERVER_URL = {
-    PATH: 'https://js.dump.academy/keksobooking/',
-    DATA: 'data'
-  };
-
   var onServerResponse = function (url, requestType, successCallback, errorCallback, data) {
     var errorMsg;
 
@@ -41,7 +40,11 @@ window.backend = (function () {
     xhr.addEventListener('load', function () {
       switch (xhr.status) {
         case Code.SUCCESS:
-          successCallback(xhr.response);
+          if (data) {
+            successCallback(xhr.status);
+          } else {
+            successCallback(xhr.response);
+          }
           break;
         case Code.BAD_REQUEST:
           errorMsg = ErrorMessage.BAD_REQUEST;
@@ -102,11 +105,8 @@ window.backend = (function () {
 
       onServerResponse(SERVER_URL.PATH + SERVER_URL.DATA, 'GET', successCallback, errorCallback);
     },
-    // На будущее
-    // submit: function (successCallback, errorCallback) {
-    //   var URL = 'https://js.dump.academy/keksobooking';
-
-    //   onServerResponse(SERVER_URL.PATH, 'POST', successCallback, errorCallback);
-    // }
+    submit: function (successCallback, errorCallback, data) {
+      onServerResponse(SERVER_URL.PATH, 'POST', successCallback, errorCallback, data);
+    }
   };
 }());
