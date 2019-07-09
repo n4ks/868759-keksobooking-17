@@ -57,10 +57,11 @@ window.pictures = (function () {
 
   // Переносим стили с дива на фотографии (переделать, переносит какую то дичь)
   var copyNodeStyle = function (sourceNode, targetNode) {
-    var computedStyle = window.getComputedStyle(sourceNode);
-    Array.from(computedStyle).forEach(function (key) {
-      return targetNode.style.setProperty(key, computedStyle.getPropertyValue(key), computedStyle.getPropertyPriority(key));
-    });
+    // var computedStyle = window.getComputedStyle(sourceNode);
+    // Array.from(computedStyle).forEach(function (key) {
+    //   return targetNode.style.setProperty(key, computedStyle.getPropertyValue(key), computedStyle.getPropertyPriority(key));
+    // });
+    targetNode.style.cssText = window.getComputedStyle(sourceNode).cssText;
   };
 
   // Загрузка фото

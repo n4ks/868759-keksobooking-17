@@ -1,13 +1,12 @@
 'use strict';
 
-(function () {
+window.map = (function () {
   var map = document.querySelector('.map');
   var form = document.querySelector('.ad-form');
   var mainPin = document.querySelector('.map__pin--main');
   var mapFormElements = map.querySelector('.map__filters').querySelectorAll('.map__filter, .map__features');
   var addressField = form.querySelector('#address');
   var isActiveMode = false;
-
   var mainPinCoords = {
     x: mainPin.offsetLeft,
     y: mainPin.offsetTop
@@ -104,6 +103,7 @@
                 window.data = response;
                 window.pin.renderPins(window.data);
                 window.util.enableElements(mapFormElements);
+                // setMapDefault();
               }
             };
             var errorCallback = function (showErrorWindow) {
@@ -113,11 +113,9 @@
             window.backend.load(successCallback, errorCallback);
           };
           getData();
-
           isActiveMode = true;
         }
       };
-      // setMapActive();
       window.util.isActiveModeOn(setMapActive);
 
       // Записываем координаты метки в поле 'адрес' учитывая указатель
@@ -133,5 +131,27 @@
     document.addEventListener('mousemove', onPinMove);
     mainPin.addEventListener('mouseup', onMouseUp);
 
+
+    // Переводим все элементы в начальное состояние
+    return {
+      setMapDefault: function () {
+        // isActiveMode = false;
+        // Сбрасываем положение главного пина
+        mainPin.style.top = mainPinCoords.y + 'px';
+        mainPin.style.left = mainPinCoords.x + 'px';
+        addressField.value = setAddressFieldValue(mainPinCoords, mainPinSizes.width, mainPinSizes.width, 0);
+        // Удаляем пины с объявлениями
+        var mapPins = Array.from(map.querySelectorAll('.map__pin:not(.map__pin--main)'));
+        mapPins.forEach(function (pin) {
+          pin.remove();
+        });
+        map.classList.add('map--faded');
+        // Обнуляем активные чекбоксы на карте
+        var mapCheckboxes = Array.from(map.querySelectorAll('.map__features input:checked'));
+        mapCheckboxes.forEach(function (checkbox) {
+          checkbox.removeAttr('checked');
+        });
+      }
+    };
   });
 }());
