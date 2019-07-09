@@ -1,6 +1,8 @@
 'use strict';
 
 window.map = (function () {
+  var SELECT_DEFAULT_VALUE = 'any';
+
   var map = document.querySelector('.map');
   var form = document.querySelector('.ad-form');
   var mainPin = document.querySelector('.map__pin--main');
@@ -95,7 +97,7 @@ window.map = (function () {
         if (!isActiveMode) {
           map.classList.remove('map--faded');
           window.form.setFormActive();
-          window.pictures.setPicturesEvents();
+          window.pictures.addPicturesEvents();
           // Запрашиваем данные
           var getData = function () {
             var successCallback = function (response) {
@@ -103,7 +105,6 @@ window.map = (function () {
                 window.data = response;
                 window.pin.renderPins(window.data);
                 window.util.enableElements(mapFormElements);
-                // setMapDefault();
               }
             };
             var errorCallback = function (showErrorWindow) {
@@ -130,28 +131,37 @@ window.map = (function () {
 
     document.addEventListener('mousemove', onPinMove);
     mainPin.addEventListener('mouseup', onMouseUp);
-
-
-    // Переводим все элементы в начальное состояние
-    return {
-      setMapDefault: function () {
-        // isActiveMode = false;
-        // Сбрасываем положение главного пина
-        mainPin.style.top = mainPinCoords.y + 'px';
-        mainPin.style.left = mainPinCoords.x + 'px';
-        addressField.value = setAddressFieldValue(mainPinCoords, mainPinSizes.width, mainPinSizes.width, 0);
-        // Удаляем пины с объявлениями
-        var mapPins = Array.from(map.querySelectorAll('.map__pin:not(.map__pin--main)'));
-        mapPins.forEach(function (pin) {
-          pin.remove();
-        });
-        map.classList.add('map--faded');
-        // Обнуляем активные чекбоксы на карте
-        var mapCheckboxes = Array.from(map.querySelectorAll('.map__features input:checked'));
-        mapCheckboxes.forEach(function (checkbox) {
-          checkbox.removeAttr('checked');
-        });
-      }
-    };
   });
+
+  return {
+    setMapDefault: function () {
+      // Переводим все элементы в начальное состояние
+      isActiveMode = false;
+      // Сбрасываем положение главного пина
+      mainPin.style.top = mainPinCoords.y + 'px';
+      mainPin.style.left = mainPinCoords.x + 'px';
+      addressField.value = setAddressFieldValue(mainPinCoords, mainPinSizes.width, mainPinSizes.width, 0);
+      // Удаляем пины с объявлениями
+      var mapPins = Array.from(map.querySelectorAll('.map__pin:not(.map__pin--main)'));
+      mapPins.forEach(function (pin) {
+        pin.remove();
+      });
+      // Сбрасываем селекты
+      var mapFormSelects = Array.from(map.querySelector('.map__filters').querySelectorAll('.map__filter'));
+      mapFormSelects.forEach(function (select) {
+        if (select.value !== SELECT_DEFAULT_VALUE) {
+          select.value = SELECT_DEFAULT_VALUE;
+        }
+      });
+      // Обнуляем активные чекбоксы на карте
+      var mapCheckboxes = Array.from(map.querySelectorAll('.map__features input:checked'));
+      mapCheckboxes.forEach(function (checkbox) {
+        checkbox.checked = false;
+      });
+
+      // Блокируем форму и карту
+      map.classList.add('map--faded');
+      form.classList.add('ad-form--disabled');
+    }
+  };
 }());

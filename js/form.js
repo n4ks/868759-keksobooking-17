@@ -1,11 +1,12 @@
 'use strict';
 
 window.form = (function () {
+  var RESET_TIMER = 100;
   var SUCCESS_STATUS = 200;
   var GUESTS_VALIDATION_MSG = 'Недопустимое количество гостей для указанного количества комнат, выберите доступный вариант.';
   var INVALID_STATE = {
     ENABLED: '2px solid tomato',
-    DISABLED: 'none'
+    DISABLED: '1px solid #d9d9d3'
   };
   var PALACE = {
     ROOMS: '100',
@@ -25,6 +26,7 @@ window.form = (function () {
   var guestsFieldOptions = Array.from(guestsNumberField.querySelectorAll('option'));
   var submitBtn = form.querySelector('.ad-form__submit');
   var successWindowTemplate = document.querySelector('#success').content.querySelector('.success');
+  var formResetBtn = form.querySelector('.ad-form__reset');
   var successWindow;
   var mainElement = document.querySelector('main');
   var housingTypeSettings = {
@@ -47,6 +49,25 @@ window.form = (function () {
   };
 
   window.util.disableElements(formFieldsets);
+
+  var setDefault = function () {
+    // Обнуляем бордеры от валидации
+    formElements.forEach(function (element) {
+      if (element.style.border === INVALID_STATE.ENABLED) {
+        element.style.border = INVALID_STATE.DISABLED;
+      }
+    });
+    // Удаляем все фотографии и ставим дефолтную аватарку
+    window.pictures.resetPhotos();
+    window.card.closeCard();
+    window.map.setMapDefault();
+    window.util.disableElements(formFieldsets);
+  };
+
+  formResetBtn.addEventListener('click', function () {
+    setTimeout(setDefault, RESET_TIMER);
+
+  });
 
   // Устанавливаем минимальное значение цены и плейсхолдер
   var onHousingTypeChange = function () {
@@ -140,6 +161,8 @@ window.form = (function () {
         mainElement.insertBefore(successWindow, mainElement.firstChild);
         document.addEventListener('keydown', onSuccessWIndowEscPress);
         document.addEventListener('click', onSuccessWindowClick);
+        form.reset();
+        setDefault();
       }
     };
 
@@ -181,7 +204,6 @@ window.form = (function () {
       guestsNumberField.addEventListener('blur', onGuestsNumberChange);
       submitBtn.addEventListener('click', onSubmitClickValidate);
       form.addEventListener('submit', onFormSubmit);
-
     }
   };
 }());

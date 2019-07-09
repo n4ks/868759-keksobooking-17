@@ -2,7 +2,11 @@
 
 window.pictures = (function () {
   var PHOTO_CLASS = 'ad-photo';
-  // var AVATAR_DROP_CLASS = ''
+  var PHOTO_FRAME_STATE = {
+    ENABLED: 'block',
+    DISABLED: 'none'
+  };
+  var DEFAULT_PHOTO = 'img/muffin-grey.svg';
   var FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
   var DRAG_OVER_STYLE = {
     ADD: '2px dashed tomato',
@@ -21,6 +25,8 @@ window.pictures = (function () {
   var photosUpload = form.querySelector('#images');
   var photosDropZone = form.querySelector('.ad-form__drop-zone');
   var photoFrame = form.querySelector('.ad-form__photo');
+  var photoFrameStyles = getComputedStyle(photoFrame);
+  var draggableItem;
 
   var uploadPicture = function (file, pictureTemplate) {
     if (file !== null) {
@@ -56,12 +62,19 @@ window.pictures = (function () {
   };
 
   // Переносим стили с дива на фотографии (переделать, переносит какую то дичь)
-  var copyNodeStyle = function (sourceNode, targetNode) {
-    // var computedStyle = window.getComputedStyle(sourceNode);
-    // Array.from(computedStyle).forEach(function (key) {
-    //   return targetNode.style.setProperty(key, computedStyle.getPropertyValue(key), computedStyle.getPropertyPriority(key));
-    // });
-    targetNode.style.cssText = window.getComputedStyle(sourceNode).cssText;
+  var setImgStyle = function (targetNode) {
+    targetNode.style.borderRadius = photoFrameStyles.borderRadius;
+    targetNode.style.marginRight = photoFrameStyles.marginRight;
+    targetNode.style.marginBottom = photoFrameStyles.marginBottom;
+    targetNode.style.width = photoFrameStyles.width;
+    targetNode.style.height = photoFrameStyles.height;
+    targetNode.style.backgroundColor = photoFrameStyles.backgroundColor;
+  };
+
+  var resetPhotoFrame = function () {
+    if (getComputedStyle(photoFrame).display === PHOTO_FRAME_STATE.DISABLED) {
+      photoFrame.style.display = PHOTO_FRAME_STATE.ENABLED;
+    }
   };
 
   // Загрузка фото
@@ -69,8 +82,10 @@ window.pictures = (function () {
     var img = document.createElement('img');
     img.setAttribute('draggable', true);
     img.classList.add(PHOTO_CLASS);
-    copyNodeStyle(photoFrame, img);
-
+    setImgStyle(img);
+    if (getComputedStyle(photoFrame).display === PHOTO_FRAME_STATE.ENABLED) {
+      photoFrame.style.display = PHOTO_FRAME_STATE.DISABLED;
+    }
     return img;
   };
 
@@ -81,32 +96,32 @@ window.pictures = (function () {
   };
 
   // Загрузка аватара через drag and drop
-  avatarUploadDropZone.addEventListener('dragover', function (evt) {
+  var onAvatarDragOver = function (evt) {
     evt.target.style.borderColor = DROPDOWN_STYLE.ADD;
     evt.preventDefault();
-  });
+  };
 
-  avatarUploadDropZone.addEventListener('dragleave', function (evt) {
+  var onAvatarDragLeave = function (evt) {
     evt.target.style.borderColor = DROPDOWN_STYLE.REMOVE;
-  });
+  };
 
-  avatarUploadDropZone.addEventListener('drop', function (evt) {
+  var onAvatarDrop = function (evt) {
     evt.preventDefault();
     uploadOnDrop(evt, avatar);
     evt.target.style.borderColor = DROPDOWN_STYLE.REMOVE;
-  });
+  };
 
   // Загрузка фото через drag and drop
-  photosDropZone.addEventListener('dragover', function (evt) {
+  var onPhotosZoneDragOver = function (evt) {
     evt.target.style.borderColor = DROPDOWN_STYLE.ADD;
     evt.preventDefault();
-  });
+  };
 
-  photosDropZone.addEventListener('dragleave', function (evt) {
+  var onPhotosZoneDragLeave = function (evt) {
     evt.target.style.borderColor = DROPDOWN_STYLE.REMOVE;
-  });
+  };
 
-  photosDropZone.addEventListener('drop', function (evt) {
+  var onPhotosZoneDrop = function (evt) {
     evt.preventDefault();
     var img = createImg();
     uploadOnDrop(evt, img);
@@ -115,7 +130,7 @@ window.pictures = (function () {
       photosContainer.appendChild(img);
     }
     evt.target.style.borderColor = DROPDOWN_STYLE.REMOVE;
-  });
+  };
 
   // Сортировка фото
 
@@ -125,61 +140,98 @@ window.pictures = (function () {
   };
   var draggableItemIndex;
   var draggableItemTargetIndex;
-  var photosPermutation = function () {
-    var draggableItem;
+  var onPhotoDragStart = function (evt) {
+    if (evt.target.hasAttribute('draggable')) {
+      draggableItem = evt.target;
+      draggableItemIndex = getChildIndex(draggableItem);
+    }
+  };
 
-    photosContainer.addEventListener('dragstart', function (evt) {
-      if (evt.target.hasAttribute('draggable')) {
-        draggableItem = evt.target;
-        draggableItemIndex = getChildIndex(draggableItem);
-      }
-    });
+  var onPhotoDragLeave = function (evt) {
+    if (evt.target.className === PHOTO_CLASS && evt.target !== draggableItem) {
+      evt.target.style.border = DRAG_OVER_STYLE.REMOVE;
+    }
+  };
 
-    photosContainer.addEventListener('dragenter', function (evt) {
-      if (evt.target.className === PHOTO_CLASS && evt.target !== draggableItem) {
-        evt.target.style.border = DRAG_OVER_STYLE.ADD;
-      }
-    });
+  var onPhotoDragOver = function (evt) {
+    evt.preventDefault();
+  };
 
-    photosContainer.addEventListener('dragleave', function (evt) {
-      if (evt.target.className === PHOTO_CLASS && evt.target !== draggableItem) {
-        evt.target.style.border = DRAG_OVER_STYLE.REMOVE;
-      }
-    });
-
-    photosContainer.addEventListener('dragover', function (evt) {
+  var onPhotoDrop = function (evt) {
+    if (evt.target.className === PHOTO_CLASS) {
       evt.preventDefault();
-    }, false);
+      draggableItemTargetIndex = getChildIndex(evt.target);
 
-    photosContainer.addEventListener('drop', function (evt) {
-      if (evt.target.className === PHOTO_CLASS) {
-        evt.preventDefault();
-        draggableItemTargetIndex = getChildIndex(evt.target);
-
-        if (evt.target !== draggableItem) {
-          draggableItem.parentNode.removeChild(draggableItem);
-          // Если перемещаемый элемент распологался до элемента с которым производится свап
-          // вставляем его после и делаем обратное если он распологался после.
-          if (draggableItemIndex > draggableItemTargetIndex) {
-            photosContainer.insertBefore(draggableItem, evt.target);
-          } else {
-            photosContainer.insertBefore(draggableItem, evt.target.nextSibling);
-          }
+      if (evt.target !== draggableItem) {
+        draggableItem.parentNode.removeChild(draggableItem);
+        // Если перемещаемый элемент распологался до элемента с которым производится свап
+        // вставляем его после и делаем обратное если он распологался после.
+        if (draggableItemIndex > draggableItemTargetIndex) {
+          photosContainer.insertBefore(draggableItem, evt.target);
+        } else {
+          photosContainer.insertBefore(draggableItem, evt.target.nextSibling);
         }
-        evt.target.style.border = DRAG_OVER_STYLE.REMOVE;
       }
-    });
+      evt.target.style.border = DRAG_OVER_STYLE.REMOVE;
+    }
+  };
+
+  var onPhotoDragEnter = function (evt) {
+    if (evt.target.className === PHOTO_CLASS && evt.target !== draggableItem) {
+      evt.target.style.border = DRAG_OVER_STYLE.ADD;
+    }
+  };
+
+  var removePhotosEvents = function () {
+    avatarUploadDropZone.removeEventListener('dragover', onAvatarDragOver);
+    avatarUploadDropZone.removeEventListener('dragleave', onAvatarDragLeave);
+    avatarUploadDropZone.removeEventListener('drop', onAvatarDrop);
+
+    photosDropZone.removeEventListener('dragover', onPhotosZoneDragOver);
+    photosDropZone.removeEventListener('dragleave', onPhotosZoneDragLeave);
+    photosDropZone.removeEventListener('drop', onPhotosZoneDrop);
+
+    photosContainer.removeEventListener('dragenter', onPhotoDragEnter);
+    photosContainer.removeEventListener('dragleave', onPhotoDragLeave);
+    photosContainer.removeEventListener('dragstart', onPhotoDragStart);
+    photosContainer.removeEventListener('dragover', onPhotoDragOver);
+    photosContainer.removeEventListener('drop', onPhotoDrop);
+    photosUpload.removeEventListener('change', onPhotoChange);
   };
 
   // Загрузка аватара
   var onAvatarChange = function () {
     uploadOnClick(avatarUpload, avatar);
+
   };
   return {
-    setPicturesEvents: function () {
+    addPicturesEvents: function () {
       avatarUpload.addEventListener('change', onAvatarChange);
       photosUpload.addEventListener('change', onPhotoChange);
-      photosPermutation();
+
+      avatarUploadDropZone.addEventListener('dragover', onAvatarDragOver);
+      avatarUploadDropZone.addEventListener('dragleave', onAvatarDragLeave);
+      avatarUploadDropZone.addEventListener('drop', onAvatarDrop);
+
+      photosDropZone.addEventListener('dragover', onPhotosZoneDragOver);
+      photosDropZone.addEventListener('dragleave', onPhotosZoneDragLeave);
+      photosDropZone.addEventListener('drop', onPhotosZoneDrop);
+
+      photosContainer.addEventListener('dragstart', onPhotoDragStart);
+      photosContainer.addEventListener('dragenter', onPhotoDragEnter);
+      photosContainer.addEventListener('dragleave', onPhotoDragLeave);
+      photosContainer.addEventListener('dragover', onPhotoDragOver, false);
+      photosContainer.addEventListener('drop', onPhotoDrop);
+    },
+    resetPhotos: function () {
+      resetPhotoFrame();
+      avatar.src = DEFAULT_PHOTO;
+      var uploadedPhotos = Array.from(photosContainer.querySelectorAll('.ad-photo'));
+
+      uploadedPhotos.forEach(function (photo) {
+        photo.remove();
+      });
+      removePhotosEvents();
     }
   };
 }());

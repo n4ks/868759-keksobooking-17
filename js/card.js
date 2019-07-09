@@ -127,11 +127,13 @@ window.card = (function () {
   });
   return {
     closeCard: function () {
-      card.remove();
-      prevBtn.classList.remove('map__pin--active');
+      if (map.contains(card)) {
+        card.remove();
+        prevBtn.classList.remove('map__pin--active');
+        cardCloseBtn.removeEventListener('click', onCloseBtnClick);
+        prevBtn = undefined;
+      }
       document.removeEventListener('keydown', onCardEscPress);
-      cardCloseBtn.removeEventListener('click', onCloseBtnClick);
-      prevBtn = undefined;
     }
   };
 }());
