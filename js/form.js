@@ -26,6 +26,7 @@ window.form = (function () {
   var guestsFieldOptions = Array.from(guestsNumberField.querySelectorAll('option'));
   var submitBtn = form.querySelector('.ad-form__submit');
   var successWindowTemplate = document.querySelector('#success').content.querySelector('.success');
+
   var formResetBtn = form.querySelector('.ad-form__reset');
   var successWindow;
   var mainElement = document.querySelector('main');
@@ -68,6 +69,10 @@ window.form = (function () {
     setTimeout(setDefault, RESET_TIMER);
 
   });
+
+  // var removeFormEvents = function () {
+
+  // };
 
   // Устанавливаем минимальное значение цены и плейсхолдер
   var onHousingTypeChange = function () {
@@ -151,6 +156,7 @@ window.form = (function () {
     window.util.onEscEvent(evt, closeSuccessWindow);
     document.removeEventListener('keydown', onSuccessWIndowEscPress);
   };
+  // Окно ошибки при отправке данных
 
   // Обрабатываем ответ при отправке формы
   var onFormSubmit = function (evt) {

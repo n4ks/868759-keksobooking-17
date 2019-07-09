@@ -70,14 +70,40 @@ window.backend = (function () {
       }
 
       if (errorMsg) {
+        var errorElement = document.querySelector('#error').content.querySelector('.error');
+        var errorWindow = errorElement.cloneNode(true);
+
         var showErrorWindow = function () {
-          var errorElement = document.querySelector('#error').content.querySelector('.error');
-          errorElement.style.zIndex = 15;
-          var errorElementText = errorElement.querySelector('.error__message');
+          errorWindow.style.zIndex = 15;
+          var errorElementText = errorWindow.querySelector('.error__message');
           errorElementText.textContent = errorMsg;
-          document.body.insertAdjacentElement('afterbegin', errorElement);
+          document.body.insertAdjacentElement('afterbegin', errorWindow);
         };
         errorCallback(showErrorWindow);
+
+        var errorWindowBtn = errorWindow.querySelector('.error__button');
+
+        var closeErrorWindow = function () {
+          errorWindow.remove();
+        };
+
+        var onErrorWindowClick = function () {
+          closeErrorWindow();
+          document.removeEventListener('click', onErrorWindowClick);
+        };
+
+        var onErrorWindowEscPress = function (evt) {
+          window.util.onEscEvent(evt, closeErrorWindow);
+          document.removeEventListener('keydown', onErrorWindowEscPress);
+        };
+
+        var onErrorWindowBtnClick = function () {
+          closeErrorWindow();
+          errorWindowBtn.removeEventListener('click', onErrorWindowBtnClick);
+        };
+        document.addEventListener('keydown', onErrorWindowEscPress);
+        document.addEventListener('click', onErrorWindowClick);
+        errorWindowBtn.addEventListener('click', onErrorWindowBtnClick);
       }
 
       xhr.timeout = 10000;
