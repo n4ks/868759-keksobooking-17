@@ -2,7 +2,6 @@
 
 window.form = (function () {
   var SUCCESS_STATUS = 200;
-  var FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
   var GUESTS_VALIDATION_MSG = 'Недопустимое количество гостей для указанного количества комнат, выберите доступный вариант.';
   var INVALID_STATE = {
     ENABLED: '2px solid tomato',
@@ -16,12 +15,7 @@ window.form = (function () {
   var form = document.querySelector('.ad-form');
   var formFieldsets = form.querySelectorAll('.ad-form__element, .ad-form-header__input');
   var formElements = Array.from(form.querySelectorAll('input, select'));
-  var avatarUpload = form.querySelector('#avatar');
-  var avatar = form.querySelector('.ad-form-header__preview img');
   var addressField = form.querySelector('#address');
-  var photosContainer = form.querySelector('.ad-form__photo-container');
-  var photosUpload = form.querySelector('#images');
-  var photoFrame = form.querySelector('.ad-form__photo');
   var housingTypeField = form.querySelector('#type');
   var pricePerNightField = form.querySelector('#price');
   var timeInField = form.querySelector('#timein');
@@ -53,56 +47,6 @@ window.form = (function () {
   };
 
   window.util.disableElements(formFieldsets);
-
-  var uploadPicture = function (uploadInput, pictureTemplate) {
-    var file = uploadInput.files[0];
-    var fileName = file.name.toLowerCase();
-
-    var checkFIleFormat = FILE_TYPES.some(function (format) {
-      return fileName.endsWith(format);
-    });
-
-    if (checkFIleFormat) {
-      var fileReader = new FileReader();
-
-      var onFileLoad = function () {
-        pictureTemplate.src = fileReader.result;
-        fileReader.removeEventListener('load', onFileLoad);
-      };
-
-      fileReader.addEventListener('load', onFileLoad);
-
-      fileReader.readAsDataURL(file);
-    }
-  };
-
-  // Переносим стили с дива на фотографии
-  var copyNodeStyle = function (sourceNode, targetNode) {
-    var computedStyle = window.getComputedStyle(sourceNode);
-    Array.from(computedStyle).forEach(function (key) {
-      return targetNode.style.setProperty(key, computedStyle.getPropertyValue(key), computedStyle.getPropertyPriority(key));
-    });
-  };
-
-  // Загрузка фото
-  var createPhoto = function () {
-    // photoFrame.style.display = 'none';
-    // var newPhoto = photoFrame.cloneNode();
-    var img = document.createElement('img');
-    copyNodeStyle(photoFrame, img);
-    uploadPicture(photosUpload, img);
-    // newPhoto.appendChild(img);
-    photosContainer.appendChild(img);
-  };
-
-  var onPhotoChange = function () {
-    createPhoto();
-  };
-
-  // Загрузка аватара
-  var onAvatarChange = function () {
-    uploadPicture(avatarUpload, avatar);
-  };
 
   // Устанавливаем минимальное значение цены и плейсхолдер
   var onHousingTypeChange = function () {
@@ -220,8 +164,6 @@ window.form = (function () {
       // Добавляем подстветку невалидным полям
       setValidation();
 
-      avatarUpload.addEventListener('change', onAvatarChange);
-      photosUpload.addEventListener('change', onPhotoChange);
       housingTypeField.addEventListener('change', onHousingTypeChange);
 
       timeInField.addEventListener('change', function () {

@@ -96,6 +96,7 @@
         if (!isActiveMode) {
           map.classList.remove('map--faded');
           window.form.setFormActive();
+          window.pictures.setPicturesEvents();
           // Запрашиваем данные
           var getData = function () {
             var successCallback = function (response) {
