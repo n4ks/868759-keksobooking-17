@@ -9,7 +9,7 @@ window.map = (function () {
   var mapFormElements = map.querySelector('.map__filters').querySelectorAll('.map__filter, .map__features');
   var addressField = form.querySelector('#address');
   var isActiveMode = false;
-  var mainPinCoords = {
+  var MainPinCoord = {
     x: mainPin.offsetLeft,
     y: mainPin.offsetTop
   };
@@ -21,10 +21,10 @@ window.map = (function () {
     Y_MAX: 630
   };
 
-  var mainPinSizes = {
-    width: 65,
-    height: 65,
-    arrowHeight: 22
+  var MainPinSize = {
+    WIDTH: 65,
+    HEIGHT: 65,
+    ARROW_HEIGHT: 22
   };
 
   mainPin.style.zIndex = '10';
@@ -32,12 +32,37 @@ window.map = (function () {
 
   // Инициализиуем поле 'адрес' начальными значениями координат основной метки
   var setAddressFieldValue = function (pinCoords, pinWidth, pinHeight, arrowHeight) {
+    // debugger
     var arrow = arrowHeight !== 0 ? arrowHeight : 0;
 
     return (parseInt(pinCoords.x, 10) + (pinWidth / 2)).toFixed() + ', ' +
       (parseInt(pinCoords.y, 10) + (pinHeight / 2) + arrow).toFixed();
   };
-  addressField.value = setAddressFieldValue(mainPinCoords, mainPinSizes.width, mainPinSizes.width, 0);
+  addressField.value = setAddressFieldValue(MainPinCoord, MainPinSize.WIDTH, MainPinSize.HEIGHT, 0);
+
+  var getData = function () {
+    var successCallback = function (response) {
+      if (response) {
+        window.data = response;
+        window.pin.renderPins(window.data);
+        window.util.enableElements(mapFormElements);
+      }
+    };
+    var errorCallback = function (showErrorWindow) {
+      showErrorWindow();
+    };
+
+    window.backend.load(successCallback, errorCallback);
+  };
+
+  var setMapActive = function () {
+    map.classList.remove('map--faded');
+    window.form.setFormActive();
+    window.pictures.addPicturesEvents();
+    // Запрашиваем данные
+    getData();
+    isActiveMode = true;
+  };
 
   mainPin.addEventListener('mousedown', function (evt) {
     // Получаем координаты клика
@@ -68,19 +93,15 @@ window.map = (function () {
         switch (true) {
           case shiftedCoords.x < MapLimit.X_MIN:
             shiftedCoords.x = MapLimit.X_MIN;
-            document.removeEventListener('mousemove', onPinMove);
             break;
-          case shiftedCoords.x > (MapLimit.X_MAX - mainPinSizes.width):
-            shiftedCoords.x = MapLimit.X_MAX - mainPinSizes.width;
-            document.removeEventListener('mousemove', onPinMove);
+          case shiftedCoords.x > (MapLimit.X_MAX - MainPinSize.WIDTH):
+            shiftedCoords.x = MapLimit.X_MAX - MainPinSize.WIDTH;
             break;
           case shiftedCoords.y < MapLimit.Y_MIN:
             shiftedCoords.y = MapLimit.Y_MIN;
-            document.removeEventListener('mousemove', onPinMove);
             break;
-          case shiftedCoords.y > (MapLimit.Y_MAX - (mainPinSizes.height + mainPinSizes.arrowHeight)):
-            shiftedCoords.y = MapLimit.Y_MAX - (mainPinSizes.height + mainPinSizes.arrowHeight);
-            document.removeEventListener('mousemove', onPinMove);
+          case shiftedCoords.y > (MapLimit.Y_MAX - (MainPinSize.HEIGHT + MainPinSize.ARROW_HEIGHT)):
+            shiftedCoords.y = MapLimit.Y_MAX - (MainPinSize.HEIGHT + MainPinSize.ARROW_HEIGHT);
             break;
           default:
             break;
@@ -89,48 +110,26 @@ window.map = (function () {
       restrictMoveArea();
 
       // Присваиваем метке новые координаты
-      mainPin.style.top = (shiftedCoords.y) + 'px';
-      mainPin.style.left = (shiftedCoords.x) + 'px';
+      mainPin.style.top = shiftedCoords.y + 'px';
+      mainPin.style.left = shiftedCoords.x + 'px';
 
       // Переводим карту в активное состояние
-      var setMapActive = function () {
-        if (!isActiveMode) {
-          map.classList.remove('map--faded');
-          window.form.setFormActive();
-          window.pictures.addPicturesEvents();
-          // Запрашиваем данные
-          var getData = function () {
-            var successCallback = function (response) {
-              if (response) {
-                window.data = response;
-                window.pin.renderPins(window.data);
-                window.util.enableElements(mapFormElements);
-              }
-            };
-            var errorCallback = function (showErrorWindow) {
-              showErrorWindow();
-            };
-
-            window.backend.load(successCallback, errorCallback);
-          };
-          getData();
-          isActiveMode = true;
-        }
-      };
-      window.util.isActiveModeOn(setMapActive);
+      if (!isActiveMode) {
+        setMapActive();
+      }
 
       // Записываем координаты метки в поле 'адрес' учитывая указатель
-      addressField.value = setAddressFieldValue(shiftedCoords, mainPinSizes.width, (mainPinSizes.height + mainPinSizes.height), mainPinSizes.arrowHeight);
+      addressField.value = setAddressFieldValue(shiftedCoords, MainPinSize.WIDTH, (MainPinSize.HEIGHT + MainPinSize.HEIGHT), MainPinSize.ARROW_HEIGHT);
     };
 
     var onMouseUp = function () {
 
       document.removeEventListener('mousemove', onPinMove);
-      mainPin.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener('mouseup', onMouseUp);
     };
 
     document.addEventListener('mousemove', onPinMove);
-    mainPin.addEventListener('mouseup', onMouseUp);
+    document.addEventListener('mouseup', onMouseUp);
   });
 
   return {
@@ -138,9 +137,9 @@ window.map = (function () {
       // Переводим все элементы в начальное состояние
       isActiveMode = false;
       // Сбрасываем положение главного пина
-      mainPin.style.top = mainPinCoords.y + 'px';
-      mainPin.style.left = mainPinCoords.x + 'px';
-      addressField.value = setAddressFieldValue(mainPinCoords, mainPinSizes.width, mainPinSizes.width, 0);
+      mainPin.style.top = MainPinCoord.y + 'px';
+      mainPin.style.left = MainPinCoord.x + 'px';
+      addressField.value = setAddressFieldValue(MainPinCoord, MainPinSize.WIDTH, MainPinSize.HEIGHT, 0);
       // Удаляем пины с объявлениями
       var mapPins = Array.from(map.querySelectorAll('.map__pin:not(.map__pin--main)'));
       mapPins.forEach(function (pin) {

@@ -2,17 +2,20 @@
 
 window.pictures = (function () {
   var PHOTO_CLASS = 'ad-photo';
-  var PHOTO_FRAME_STATE = {
+  var DEFAULT_PHOTO = 'img/muffin-grey.svg';
+  var FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
+
+  var PhotoFrameState = {
     ENABLED: 'block',
     DISABLED: 'none'
   };
-  var DEFAULT_PHOTO = 'img/muffin-grey.svg';
-  var FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
-  var DRAG_OVER_STYLE = {
+
+  var DragOverState = {
     ADD: '2px dashed tomato',
     REMOVE: 'none'
   };
-  var DROPDOWN_STYLE = {
+
+  var DropdownState = {
     ADD: 'tomato',
     REMOVE: '#c7c7c7'
   };
@@ -32,11 +35,11 @@ window.pictures = (function () {
     if (file !== null) {
       var fileName = file.name.toLowerCase();
 
-      var checkFIleFormat = FILE_TYPES.some(function (format) {
+      var checkFileFormat = FILE_TYPES.some(function (format) {
         return fileName.endsWith(format);
       });
 
-      if (checkFIleFormat) {
+      if (checkFileFormat) {
         var fileReader = new FileReader();
 
         var onFileLoad = function () {
@@ -72,8 +75,8 @@ window.pictures = (function () {
   };
 
   var resetPhotoFrame = function () {
-    if (getComputedStyle(photoFrame).display === PHOTO_FRAME_STATE.DISABLED) {
-      photoFrame.style.display = PHOTO_FRAME_STATE.ENABLED;
+    if (getComputedStyle(photoFrame).display === PhotoFrameState.DISABLED) {
+      photoFrame.style.display = PhotoFrameState.ENABLED;
     }
   };
 
@@ -83,8 +86,8 @@ window.pictures = (function () {
     img.setAttribute('draggable', true);
     img.classList.add(PHOTO_CLASS);
     setImgStyle(img);
-    if (getComputedStyle(photoFrame).display === PHOTO_FRAME_STATE.ENABLED) {
-      photoFrame.style.display = PHOTO_FRAME_STATE.DISABLED;
+    if (getComputedStyle(photoFrame).display === PhotoFrameState.ENABLED) {
+      photoFrame.style.display = PhotoFrameState.DISABLED;
     }
     return img;
   };
@@ -97,28 +100,28 @@ window.pictures = (function () {
 
   // Загрузка аватара через drag and drop
   var onAvatarDragOver = function (evt) {
-    evt.target.style.borderColor = DROPDOWN_STYLE.ADD;
     evt.preventDefault();
+    evt.target.style.borderColor = DropdownState.ADD;
   };
 
   var onAvatarDragLeave = function (evt) {
-    evt.target.style.borderColor = DROPDOWN_STYLE.REMOVE;
+    evt.target.style.borderColor = DropdownState.REMOVE;
   };
 
   var onAvatarDrop = function (evt) {
     evt.preventDefault();
     uploadOnDrop(evt, avatar);
-    evt.target.style.borderColor = DROPDOWN_STYLE.REMOVE;
+    evt.target.style.borderColor = DropdownState.REMOVE;
   };
 
   // Загрузка фото через drag and drop
   var onPhotosZoneDragOver = function (evt) {
-    evt.target.style.borderColor = DROPDOWN_STYLE.ADD;
     evt.preventDefault();
+    evt.target.style.borderColor = DropdownState.ADD;
   };
 
   var onPhotosZoneDragLeave = function (evt) {
-    evt.target.style.borderColor = DROPDOWN_STYLE.REMOVE;
+    evt.target.style.borderColor = DropdownState.REMOVE;
   };
 
   var onPhotosZoneDrop = function (evt) {
@@ -129,7 +132,7 @@ window.pictures = (function () {
     if (evt.dataTransfer.items[0].getAsFile()) {
       photosContainer.appendChild(img);
     }
-    evt.target.style.borderColor = DROPDOWN_STYLE.REMOVE;
+    evt.target.style.borderColor = DropdownState.REMOVE;
   };
 
   // Сортировка фото
@@ -149,7 +152,7 @@ window.pictures = (function () {
 
   var onPhotoDragLeave = function (evt) {
     if (evt.target.className === PHOTO_CLASS && evt.target !== draggableItem) {
-      evt.target.style.border = DRAG_OVER_STYLE.REMOVE;
+      evt.target.style.border = DragOverState.REMOVE;
     }
   };
 
@@ -158,8 +161,8 @@ window.pictures = (function () {
   };
 
   var onPhotoDrop = function (evt) {
+    evt.preventDefault();
     if (evt.target.className === PHOTO_CLASS) {
-      evt.preventDefault();
       draggableItemTargetIndex = getChildIndex(evt.target);
 
       if (evt.target !== draggableItem) {
@@ -172,13 +175,13 @@ window.pictures = (function () {
           photosContainer.insertBefore(draggableItem, evt.target.nextSibling);
         }
       }
-      evt.target.style.border = DRAG_OVER_STYLE.REMOVE;
+      evt.target.style.border = DragOverState.REMOVE;
     }
   };
 
   var onPhotoDragEnter = function (evt) {
     if (evt.target.className === PHOTO_CLASS && evt.target !== draggableItem) {
-      evt.target.style.border = DRAG_OVER_STYLE.ADD;
+      evt.target.style.border = DragOverState.ADD;
     }
   };
 

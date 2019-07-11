@@ -3,8 +3,7 @@
 window.util = (function () {
   var ESC_KEYCODE = 27;
   var DEBOUNCE_INTERVAL = 500;
-  var map = document.querySelector('.map');
-  var form = document.querySelector('.ad-form');
+
   var lastTimeout;
 
   return {
@@ -21,11 +20,6 @@ window.util = (function () {
     disableElements: function (elementsArray) {
       for (var i = 0; i < elementsArray.length; i++) {
         elementsArray[i].setAttribute('disabled', 'disabled');
-      }
-    },
-    isActiveModeOn: function (action) {
-      if (map.classList.contains('map--faded') && form.classList.contains('ad-form--disabled')) {
-        action();
       }
     },
     preventDebounce: function (action) {

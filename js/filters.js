@@ -2,7 +2,8 @@
 (function () {
   var DEFAULT_FILTER = 'any';
   var PRICE_FILTER_ID = 'housing-price';
-  var PRICE_FILTER_VALUES = {
+  var NO_MATCH_FOUND = -1;
+  var PriceFilterValues = {
     LOW: 'low',
     MID: 'middle',
     HIGH: 'high'
@@ -47,13 +48,13 @@
             var priceFilter;
             switch (true) {
               case adsPrice >= priceRanges.low.min && adsPrice <= priceRanges.low.max:
-                priceFilter = PRICE_FILTER_VALUES.LOW;
+                priceFilter = PriceFilterValues.LOW;
                 break;
               case adsPrice >= priceRanges.middle.min && adsPrice <= priceRanges.middle.max:
-                priceFilter = PRICE_FILTER_VALUES.MID;
+                priceFilter = PriceFilterValues.MID;
                 break;
               case adsPrice >= priceRanges.high.min:
-                priceFilter = PRICE_FILTER_VALUES.HIGH;
+                priceFilter = PriceFilterValues.HIGH;
                 break;
               default:
                 break;
@@ -78,7 +79,8 @@
     window.filteredAds = window.filteredAds.filter(function (ad) {
 
       for (var i = 0; i < selectedFeatures.length; i++) {
-        if (ad.offer.features.indexOf(selectedFeatures[i]) === -1) {
+        var selectedFeature = ad.offer.features.indexOf(selectedFeatures[i]);
+        if (selectedFeature === NO_MATCH_FOUND) {
           return false;
         }
       }

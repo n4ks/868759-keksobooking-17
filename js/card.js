@@ -8,6 +8,8 @@ window.card = (function () {
   var cardPattern = document.querySelector('#card').content.querySelector('.map__card');
   var card;
   var cardCloseBtn;
+  var target;
+  var prevBtn = null;
 
   var pinsList = document.querySelector('.map__pins');
   var ads = [];
@@ -27,6 +29,48 @@ window.card = (function () {
     'conditioner': 'popup__feature--conditioner'
   };
 
+  var handleFeatures = function (featuresContainer) {
+    featuresContainer.hidden = false;
+    // Убираем преимущества из карточки и добавляем только подходящие по фильтру
+    while (featuresContainer.firstChild) {
+      featuresContainer.removeChild(featuresContainer.firstChild);
+    }
+  };
+
+  var toggleFeaturesVisibility = function (featuresContainer, pinObj) {
+    if (pinObj.offer.features.length > 0) {
+      var featuresFragment = document.createDocumentFragment();
+
+      pinObj.offer.features.forEach(function (feature) {
+        var featureElement = document.createElement('li');
+        featureElement.classList.add(CARD_FEATURE_CLASS);
+        featureElement.classList.add(featureMap[feature]);
+        featuresFragment.appendChild(featureElement);
+      });
+      featuresContainer.appendChild(featuresFragment);
+    } else {
+      featuresContainer.hidden = true;
+    }
+  };
+
+  var handlePhotos = function (photoTemplate, pinObj) {
+    var photosFragment = document.createDocumentFragment();
+    pinObj.offer.photos.forEach(function (photoSrc) {
+      var photo = photoTemplate.cloneNode();
+      photo.src = photoSrc;
+      photosFragment.appendChild(photo);
+    });
+
+    return photosFragment;
+  };
+
+  var updatePhotos = function (photoTemplate, photoContainer, avatar, pinObj) {
+    photoTemplate.remove();
+    var photosFragment = handlePhotos(photoContainer, pinObj);
+    photoContainer.appendChild(photosFragment);
+    avatar.src = pinObj.author.avatar;
+  };
+
   // Заполняем карточку данными из объекта
   var createCard = function (ad) {
     card = cardPattern.cloneNode(true);
@@ -43,45 +87,20 @@ window.card = (function () {
     var cardPhotosList = card.querySelector('.popup__photos');
     var cardPhotoTemplate = cardPhotosList.querySelector('.popup__photo');
 
-    cardTitle.textContent = ad.offer.title;
-    cardAddress.textContent = ad.offer.address;
-    cardPrice.textContent = ad.offer.price + '₽/ночь';
-    cardType.textContent = houseTypeMap[ad.offer.type];
-    cardRooms.textContent = ad.offer.rooms + ' комнаты для ' + ad.offer.guests + ' гостей.';
-    cardTime.textContent = 'Заезд после ' + ad.offer.checkin + ', выезд до ' + ad.offer.checkout;
+    var fillCardInfo = function () {
+      cardTitle.textContent = ad.offer.title;
+      cardAddress.textContent = ad.offer.address;
+      cardPrice.textContent = ad.offer.price + '₽/ночь';
+      cardType.textContent = houseTypeMap[ad.offer.type];
+      cardRooms.textContent = ad.offer.rooms + ' комнаты для ' + ad.offer.guests + ' гостей.';
+      cardTime.textContent = 'Заезд после ' + ad.offer.checkin + ', выезд до ' + ad.offer.checkout;
+      cardDescr.textContent = ad.offer.description;
+    };
 
-    // Преимущества
-    cardFeatures.hidden = false;
-    // Убираем преимущества из карточки и добавляем только подходящие по фильтру
-    while (cardFeatures.firstChild) {
-      cardFeatures.removeChild(cardFeatures.firstChild);
-    }
-
-    if (ad.offer.features.length > 0) {
-      var featuresFragment = document.createDocumentFragment();
-
-      ad.offer.features.forEach(function (feature) {
-        var featureElement = document.createElement('li');
-        featureElement.classList.add(CARD_FEATURE_CLASS);
-        featureElement.classList.add(featureMap[feature]);
-        featuresFragment.appendChild(featureElement);
-      });
-      cardFeatures.appendChild(featuresFragment);
-    } else {
-      cardFeatures.hidden = true;
-    }
-    cardDescr.textContent = ad.offer.description;
-    // Фотографии
-    var photosFragment = document.createDocumentFragment();
-    ad.offer.photos.forEach(function (photoSrc) {
-      var photo = cardPhotoTemplate.cloneNode();
-      photo.src = photoSrc;
-      photosFragment.appendChild(photo);
-    });
-
-    cardPhotoTemplate.remove();
-    cardPhotosList.appendChild(photosFragment);
-    cardAvatar.src = ad.author.avatar;
+    fillCardInfo();
+    handleFeatures(cardFeatures);
+    toggleFeaturesVisibility(cardFeatures, ad);
+    updatePhotos(cardPhotoTemplate, cardPhotosList, cardAvatar, ad);
 
     map.insertBefore(card, mapFiltersContainer);
   };
@@ -94,9 +113,7 @@ window.card = (function () {
     window.card.closeCard();
   };
 
-  // Создаём и показываем карточку при клике по пину
-  var target;
-  var prevBtn;
+  // Показываем карточку при клике по пину
   pinsList.addEventListener('click', function (evt) {
     target = evt.target;
     while (target !== pinsList) {
@@ -112,7 +129,7 @@ window.card = (function () {
         };
         // Отрисовываем карточку при взаимодействии с пином первый раз
         // Карточка перерисовывается если производится клик по пину с idшником отличным от текущего
-        if (prevBtn === undefined) {
+        if (prevBtn === null) {
           setCardConfiguration();
         } else if (target.id !== prevBtn.id) {
           window.card.closeCard();
@@ -131,7 +148,7 @@ window.card = (function () {
         card.remove();
         prevBtn.classList.remove('map__pin--active');
         cardCloseBtn.removeEventListener('click', onCloseBtnClick);
-        prevBtn = undefined;
+        prevBtn = null;
       }
       document.removeEventListener('keydown', onCardEscPress);
     }

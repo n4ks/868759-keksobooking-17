@@ -1,7 +1,7 @@
 'use strict';
 
 window.backend = (function () {
-  var SERVER_URL = {
+  var ServerUrl = {
     PATH: 'https://js.dump.academy/keksobooking/',
     DATA: 'data'
   };
@@ -31,79 +31,87 @@ window.backend = (function () {
     }
   };
 
-  var onServerResponse = function (url, requestType, successCallback, errorCallback, data) {
-    var errorMsg;
+  var errorMsg;
 
+  var checkServerResponse = function (httpRequest, successCallback, data) {
+    switch (httpRequest.status) {
+      case Code.SUCCESS:
+        if (data) {
+          successCallback(httpRequest.status);
+        } else {
+          successCallback(httpRequest.response);
+        }
+        break;
+      case Code.BAD_REQUEST:
+        errorMsg = ErrorMessage.BAD_REQUEST;
+        break;
+      case Code.UNAUTHORIZED:
+        errorMsg = ErrorMessage.UNAUTHORIZED;
+        break;
+      case Code.NOT_FOUND:
+        errorMsg = ErrorMessage.NOT_FOUND;
+        break;
+      case Code.SERVER_ERROR:
+        errorMsg = ErrorMessage.SERVER_ERROR;
+        break;
+      case Code.BAD_GATEWAY:
+        errorMsg = ErrorMessage.BAD_GATEWAY;
+        break;
+      case Code.SERVICE_UNAVAILABLE:
+        errorMsg = ErrorMessage.SERVICE_UNAVAILABLE;
+        break;
+      default:
+        errorMsg = ErrorMessage.DEFAULT + httpRequest.status + ' ' + httpRequest.statusText;
+        break;
+    }
+  };
+
+  var handleError = function (errorCallback) {
+    var errorElement = document.querySelector('#error').content.querySelector('.error');
+    var errorWindow = errorElement.cloneNode(true);
+
+    var showErrorWindow = function () {
+      errorWindow.style.zIndex = 15;
+      var errorElementText = errorWindow.querySelector('.error__message');
+      errorElementText.textContent = errorMsg;
+      document.body.insertAdjacentElement('afterbegin', errorWindow);
+    };
+    errorCallback(showErrorWindow);
+
+    var errorWindowBtn = errorWindow.querySelector('.error__button');
+
+    var closeErrorWindow = function () {
+      errorWindow.remove();
+      errorMsg = null;
+    };
+
+    var onErrorWindowClick = function () {
+      closeErrorWindow();
+      document.removeEventListener('click', onErrorWindowClick);
+    };
+
+    var onErrorWindowEscPress = function (evt) {
+      window.util.onEscEvent(evt, closeErrorWindow);
+      document.removeEventListener('keydown', onErrorWindowEscPress);
+    };
+
+    var onErrorWindowBtnClick = function () {
+      closeErrorWindow();
+      errorWindowBtn.removeEventListener('click', onErrorWindowBtnClick);
+    };
+    document.addEventListener('keydown', onErrorWindowEscPress);
+    document.addEventListener('click', onErrorWindowClick);
+    errorWindowBtn.addEventListener('click', onErrorWindowBtnClick);
+  };
+
+  var createServerResponse = function (url, requestType, successCallback, errorCallback, data) {
     var xhr = new XMLHttpRequest();
     xhr.responseType = 'json';
 
     xhr.addEventListener('load', function () {
-      switch (xhr.status) {
-        case Code.SUCCESS:
-          if (data) {
-            successCallback(xhr.status);
-          } else {
-            successCallback(xhr.response);
-          }
-          break;
-        case Code.BAD_REQUEST:
-          errorMsg = ErrorMessage.BAD_REQUEST;
-          break;
-        case Code.UNAUTHORIZED:
-          errorMsg = ErrorMessage.UNAUTHORIZED;
-          break;
-        case Code.NOT_FOUND:
-          errorMsg = ErrorMessage.NOT_FOUND;
-          break;
-        case Code.SERVER_ERROR:
-          errorMsg = ErrorMessage.SERVER_ERROR;
-          break;
-        case Code.BAD_GATEWAY:
-          errorMsg = ErrorMessage.BAD_GATEWAY;
-          break;
-        case Code.SERVICE_UNAVAILABLE:
-          errorMsg = ErrorMessage.SERVICE_UNAVAILABLE;
-          break;
-        default:
-          errorMsg = ErrorMessage.DEFAULT + xhr.status + ' ' + xhr.statusText;
-          break;
-      }
-
+      checkServerResponse(xhr, successCallback, data);
       if (errorMsg) {
-        var errorElement = document.querySelector('#error').content.querySelector('.error');
-        var errorWindow = errorElement.cloneNode(true);
-
-        var showErrorWindow = function () {
-          errorWindow.style.zIndex = 15;
-          var errorElementText = errorWindow.querySelector('.error__message');
-          errorElementText.textContent = errorMsg;
-          document.body.insertAdjacentElement('afterbegin', errorWindow);
-        };
-        errorCallback(showErrorWindow);
-
-        var errorWindowBtn = errorWindow.querySelector('.error__button');
-
-        var closeErrorWindow = function () {
-          errorWindow.remove();
-        };
-
-        var onErrorWindowClick = function () {
-          closeErrorWindow();
-          document.removeEventListener('click', onErrorWindowClick);
-        };
-
-        var onErrorWindowEscPress = function (evt) {
-          window.util.onEscEvent(evt, closeErrorWindow);
-          document.removeEventListener('keydown', onErrorWindowEscPress);
-        };
-
-        var onErrorWindowBtnClick = function () {
-          closeErrorWindow();
-          errorWindowBtn.removeEventListener('click', onErrorWindowBtnClick);
-        };
-        document.addEventListener('keydown', onErrorWindowEscPress);
-        document.addEventListener('click', onErrorWindowClick);
-        errorWindowBtn.addEventListener('click', onErrorWindowBtnClick);
+        handleError(errorCallback);
       }
 
       xhr.timeout = 10000;
@@ -128,11 +136,10 @@ window.backend = (function () {
 
   return {
     load: function (successCallback, errorCallback) {
-
-      onServerResponse(SERVER_URL.PATH + SERVER_URL.DATA, 'GET', successCallback, errorCallback);
+      createServerResponse(ServerUrl.PATH + ServerUrl.DATA, 'GET', successCallback, errorCallback);
     },
     submit: function (successCallback, errorCallback, data) {
-      onServerResponse(SERVER_URL.PATH, 'POST', successCallback, errorCallback, data);
+      createServerResponse(ServerUrl.PATH, 'POST', successCallback, errorCallback, data);
     }
   };
 }());

@@ -4,11 +4,12 @@ window.form = (function () {
   var RESET_TIMER = 100;
   var SUCCESS_STATUS = 200;
   var GUESTS_VALIDATION_MSG = 'Недопустимое количество гостей для указанного количества комнат, выберите доступный вариант.';
-  var INVALID_STATE = {
+
+  var InvalidState = {
     ENABLED: '2px solid tomato',
     DISABLED: '1px solid #d9d9d3'
   };
-  var PALACE = {
+  var Palace = {
     ROOMS: '100',
     GUESTS: '0'
   };
@@ -54,8 +55,8 @@ window.form = (function () {
   var setDefault = function () {
     // Обнуляем бордеры от валидации
     formElements.forEach(function (element) {
-      if (element.style.border === INVALID_STATE.ENABLED) {
-        element.style.border = INVALID_STATE.DISABLED;
+      if (element.style.border === InvalidState.ENABLED) {
+        element.style.border = InvalidState.DISABLED;
       }
     });
     // Удаляем все фотографии и ставим дефолтную аватарку
@@ -69,10 +70,6 @@ window.form = (function () {
     setTimeout(setDefault, RESET_TIMER);
 
   });
-
-  // var removeFormEvents = function () {
-
-  // };
 
   // Устанавливаем минимальное значение цены и плейсхолдер
   var onHousingTypeChange = function () {
@@ -97,9 +94,9 @@ window.form = (function () {
   // Синхронизируем количество комнат и гостей
   var onRoomsNumberChange = function () {
     guestsFieldOptions.forEach(function (option) {
-      if (option.value === PALACE.GUESTS && roomsNumberField.value !== PALACE.ROOMS) {
+      if (option.value === Palace.GUESTS && roomsNumberField.value !== Palace.ROOMS) {
         option.disabled = true;
-      } else if (option.value !== PALACE.GUESTS && roomsNumberField.value === PALACE.ROOMS) {
+      } else if (option.value !== Palace.GUESTS && roomsNumberField.value === Palace.ROOMS) {
         option.disabled = true;
       } else if (option.value > roomsNumberField.value) {
         option.disabled = true;
@@ -121,11 +118,7 @@ window.form = (function () {
 
   // Подсвечиваем поля при потере фокуса или сабмите на сервер если срабатывает валидация
   var setInvalidElementColor = function (target) {
-    if (!target.validity.valid) {
-      target.style.border = INVALID_STATE.ENABLED;
-    } else {
-      target.style.border = INVALID_STATE.DISABLED;
-    }
+    target.style.border = target.validity.valid ? InvalidState.DISABLED : InvalidState.ENABLED;
   };
 
   var setValidation = function () {
